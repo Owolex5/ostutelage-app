@@ -1,0 +1,51 @@
+// schema.prisma
+model User {
+  id               String   @id @default(cuid())
+  firstName        String
+  lastName         String
+  email            String   @unique
+  password         String?
+  selectedSchool   String   // References school ID from schoolsData
+  accountStatus    String   @default("pending_payment") // pending_payment, active, suspended
+  applicationFee   Int      @default(12500) // in kobo
+  phone            String?
+  paymentCompletedAt DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  payments         Payment[]
+  enrollments      Enrollment[]
+
+  @@map("users")
+}
+
+model Payment {
+  id              String   @id
+  userId          String
+  amount          Int      // in kobo
+  currency        String   @default("NGN")
+  status          String   // pending, completed, failed
+  transactionId   String?  // Flutterwave transaction ID
+  school          String?  // School context for this payment
+  metadata        Json?    // Additional payment metadata
+  processedAt     DateTime?
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  school    String
+  status    String   @default("enrolled") // enrolled, in_progress, completed
+  enrolledAt DateTime @default(now())
+  completedAt DateTime?
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+}
