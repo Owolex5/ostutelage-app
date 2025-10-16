@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Solid - Free Next.js Web Template and Starter Kit for SaaS
 
 Solid is a free Next.js template specifically crafted for startups, SaaS, and software websites. It provides an extensive array of necessary sections, elements, and pages required to build a fully-equipped website for any SaaS, software, or startup site. Comes with all cutting edge React and Next.js features - **Built with Next.js 13, React 18 and TypeScript.**
@@ -89,3 +90,7 @@ If you like the template, please star this repository to inspire the team to cre
 **29 Jan 2025**
 - Upgraded to Next.js 15
 - Update framer-motion to v12.0.6 for React 19 support.
+=======
+# ostutelage-app
+A modern web platform for OsTutelage — designed for tech education, AI tools, and course management.
+>>>>>>> 2cce0ce7df6332b9f6825dcae7602b80f89e5b57
