@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { 
           message: "Missing required fields: name, email, and resume are required",
-          error: true // Add error flag for frontend clarity
+          error: true 
         },
         { status: 400 }
       );
@@ -77,9 +77,9 @@ export async function POST(request: Request) {
     const subject = `New ${applicationType} Application: ${name}`;
 
     // -------------------------------
-    // 4. Configure Nodemailer
+    // 4. Configure Nodemailer - FIXED: createTransport, not createTransporter
     // -------------------------------
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT || 587),
       secure: false,
@@ -155,7 +155,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         message: `${applicationType} application submitted successfully! We'll review your submission and get back to you within 3-5 business days.`,
-        success: true, // Add success flag
+        success: true,
       },
       { 
         status: 200,
@@ -173,7 +173,6 @@ export async function POST(request: Request) {
       timestamp: new Date().toISOString(),
     });
 
-    // More specific error handling
     if (error.code === "EAUTH") {
       return NextResponse.json(
         { 
@@ -207,7 +206,7 @@ export async function POST(request: Request) {
   }
 }
 
-// Helper functions remain the same but with fixed HTML escaping
+// Helper functions remain the same
 function buildAdminEmailHtml({
   name,
   email,
