@@ -28,48 +28,64 @@ function CareerApplyContent() {
   const defaultRole = displayRole === "General Application" ? "" : displayRole;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-    setFormStatus(null);
+  event.preventDefault();
+  setLoading(true);
+  setFormStatus(null);
 
-    const formData = new FormData(event.currentTarget);
+  const formData = new FormData(event.currentTarget);
 
-    // Ensure role is included even if not faculty/writer specific
-    if (defaultRole) {
-      formData.set("role", defaultRole);
+  // Ensure role is included even if not faculty/writer specific
+  if (defaultRole) {
+    formData.set("role", defaultRole);
+  }
+
+  try {
+    const response = await fetch("/api/career/apply", {
+      method: "POST",
+      body: formData,
+    });
+
+    const contentType = response.headers.get("content-type");
+    let result;
+
+    // Handle both JSON and non-JSON responses
+    if (contentType && contentType.includes("application/json")) {
+      result = await response.json();
+    } else {
+      // Fallback for non-JSON responses
+      result = { message: "Unexpected response format" };
     }
 
-    try {
-      const response = await fetch("/api/career/apply", {
-        method: "POST",
-        body: formData,
-      });
+    console.log("API Response:", { status: response.status, result }); // Debug log
 
-      const result = await response.json();
-
-      if (response.ok) {
-        setFormStatus(
-          result.message ||
-            `${displayRole} application submitted successfully! We'll review your submission and get back to you within 3-5 business days.`,
-        );
-        event.currentTarget.reset();
-        // Reset role to default if needed
-        const roleInput = event.currentTarget.querySelector(
-          'input[name="role"]',
-        ) as HTMLInputElement;
-        if (roleInput) roleInput.value = defaultRole;
-      } else {
-        setFormStatus(result.message || "Failed to submit application. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
+    if (response.ok) {
+      // Success - emails were sent
       setFormStatus(
-        "An error occurred while submitting your application. Please check your connection and try again.",
+        result.message || result.success 
+          ? `${displayRole} application submitted successfully! Check your email for confirmation.`
+          : "Application received successfully!"
+      );
+      event.currentTarget.reset();
+      // Reset role to default if needed
+      const roleInput = event.currentTarget.querySelector(
+        'input[name="role"]',
+      ) as HTMLInputElement;
+      if (roleInput) roleInput.value = defaultRole;
+    } else {
+      // Error from API
+      setFormStatus(
+        result.message || `Failed to submit application (Status: ${response.status}). Please try again.`
       );
     }
+  } catch (error) {
+    console.error("Error submitting form:", error);
+    setFormStatus(
+      "Network error occurred. Please check your connection and try again, or email us directly at info@ostutelage.tech."
+    );
+  }
 
-    setLoading(false);
-  };
+  setLoading(false);
+};
 
   return (
     <main>

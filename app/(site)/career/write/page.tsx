@@ -30,25 +30,45 @@ const WritePage = () => {
     setFeedback("");
 
     const formData = new FormData(e.currentTarget);
-    
-    // Ensure multipart/form-data encoding (handled automatically by FormData)
+
     try {
       const res = await fetch("/api/career/write", {
         method: "POST",
-        body: formData, // Send FormData directly (includes files)
+        body: formData,
       });
 
-      const result = await res.json();
+      const contentType = res.headers.get("content-type");
+      let result;
+
+      // Handle both JSON and non-JSON responses
+      if (contentType && contentType.includes("application/json")) {
+        result = await res.json();
+      } else {
+        result = { message: "Unexpected response format" };
+      }
+
+      console.log("Writer API Response:", { status: res.status, result }); // Debug log
 
       if (res.ok) {
-        setFeedback(result.message || "Writer application submitted successfully! We'll review your portfolio and respond soon.");
+        setFeedback(
+          result.message || result.success
+            ? "Writer application submitted successfully! Check your email for confirmation."
+            : "Application received successfully!"
+        );
         e.currentTarget.reset();
       } else {
-        setFeedback(result.message || "Failed to submit writer application. Please try again.");
+        setFeedback(
+          result.message || `Failed to submit writer application (Status: ${res.status}). Please try again.`
+        );
       }
+
+      // Auto-clear feedback after 8 seconds
+      setTimeout(() => setFeedback(""), 8000);
     } catch (err) {
-      console.error("Submission error:", err);
-      setFeedback("Error submitting application. Please check your connection and try again.");
+      console.error("Writer submission error:", err);
+      setFeedback(
+        "Network error occurred. Please check your connection and try again, or email us directly at info@ostutelage.tech."
+      );
     }
 
     setLoading(false);
@@ -164,7 +184,7 @@ const WritePage = () => {
                   type="text"
                   name="name"
                   required
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:border-purple-500 focus:outline-none dark:bg-gray-800 dark:text-white transition-colors"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:bg-gray-800 dark:text-white transition-colors"
                   placeholder="John Doe"
                 />
               </div>
@@ -179,7 +199,7 @@ const WritePage = () => {
                     type="email"
                     name="email"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:border-purple-500 focus:outline-none dark:bg-gray-800 dark:text-white transition-colors"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:bg-gray-800 dark:text-white transition-colors"
                     placeholder="john@example.com"
                   />
                 </div>
@@ -191,7 +211,7 @@ const WritePage = () => {
                     id="phone"
                     type="tel"
                     name="phone"
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:border-purple-500 focus:outline-none dark:bg-gray-800 dark:text-white transition-colors"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:bg-gray-800 dark:text-white transition-colors"
                     placeholder="+234 123 456 7890"
                   />
                 </div>
@@ -207,7 +227,7 @@ const WritePage = () => {
                   rows={4}
                   required
                   placeholder="Tell us about your writing background, areas of expertise, coding skills, and any published work..."
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:border-purple-500 focus:outline-none dark:bg-gray-800 dark:text-white transition-colors resize-vertical"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:bg-gray-800 dark:text-white transition-colors resize-vertical"
                 />
               </div>
 
@@ -234,6 +254,20 @@ const WritePage = () => {
                 </p>
               </div>
 
+              {feedback && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`p-4 rounded-xl text-center text-sm ${
+                    feedback.includes("successfully") || feedback.includes("received")
+                      ? "bg-green-50 border border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800/50 dark:text-green-300"
+                      : "bg-red-50 border border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800/50 dark:text-red-300"
+                  }`}
+                >
+                  {feedback}
+                </motion.div>
+              )}
+
               <motion.button
                 type="submit"
                 disabled={loading}
@@ -253,20 +287,6 @@ const WritePage = () => {
                   </>
                 )}
               </motion.button>
-
-              {feedback && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 rounded-xl text-center text-sm ${
-                    feedback.includes("successfully") || feedback.includes("received")
-                      ? "bg-green-50 border border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800/50 dark:text-green-300"
-                      : "bg-red-50 border border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800/50 dark:text-red-300"
-                  }`}
-                >
-                  {feedback}
-                </motion.div>
-              )}
             </form>
 
             <p className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
