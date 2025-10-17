@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Invalid email format" }, { status: 400 });
     }
 
-    // FIXED: Enhanced MIME type mapping for resume files
+    // FIXED: Enhanced MIME type mapping for resume files (documents only)
     const resumeTypeMap: Record<string, { mime: string; ext: string }> = {
       'application/pdf': { mime: 'application/pdf', ext: '.pdf' },
       'application/msword': { mime: 'application/msword', ext: '.doc' },
@@ -71,10 +71,10 @@ export async function POST(request: Request) {
     // Determine application type
     const isFaculty = !!experience;
     const applicationType = isFaculty ? 'Faculty' : role;
-    const subject = `New ${applicationType} Application: ${name} - ${resumeFileName}`;
+    const subject = `New ${applicationType} Application: ${escapeHtml(name)} - ${resumeFileName}`;
 
     // Create transporter
-    const transporter = nodemailer.createTransport({
+    const transporter = nodemailer.createTransporter({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT || 587),
       secure: false,
@@ -110,17 +110,23 @@ export async function POST(request: Request) {
       }[m] || m));
     };
 
-    // FIXED: Enhanced resume attachment configuration
-    const resumeAttachment = {
-      filename: resumeFileName,
-      content: buffer,
-      contentType: fileInfo.mime, // FIXED: Exact MIME type from map
-      disposition: 'attachment', // FIXED: Force download for documents
+    // FIXED: Type-safe resume attachment configuration (always document)
+    const createResumeAttachment = (
+      fileBuffer: Buffer, 
+      fileName: string, 
+      mimeType: string
+    ): nodemailer.AttachmentOptions => ({
+      filename: fileName,
+      content: fileBuffer,
+      contentType: mimeType,
+      disposition: 'attachment',
       headers: {
-        'Content-Disposition': `attachment; filename="${resumeFileName}"`,
-        'Content-Transfer-Encoding': 'base64', // FIXED: Binary encoding for PDFs/Docs
+        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Content-Transfer-Encoding': 'base64',
       },
-    };
+    });
+
+    const resumeAttachment = createResumeAttachment(buffer, resumeFileName, fileInfo.mime);
 
     // Admin notification email with FIXED attachment
     await transporter.sendMail({
@@ -159,14 +165,14 @@ export async function POST(request: Request) {
               </div>
             `}
 
-            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #d97706;">
+            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #d97706; margin-bottom: 15px;">
               <strong>📎 Resume Attached:</strong> ${escapeHtml(resumeFileName)}<br>
               <small style="color: #92400e;">
                 Type: ${escapeHtml(fileInfo.mime)} | 
                 Extension: ${fileInfo.ext} | 
                 Size: ${(resumeFile.size / 1024 / 1024).toFixed(2)} MB
               </small><br>
-              <em style="color: #92400e;">Click to download and review the candidate's qualifications</em>
+              <em style="color: #92400e;">Click the attachment to download and review qualifications</em>
             </div>
           </div>
           
@@ -182,7 +188,7 @@ export async function POST(request: Request) {
           </p>
         </div>
       `,
-      attachments: [resumeAttachment], // FIXED: Use enhanced attachment config
+      attachments: [resumeAttachment],
     });
 
     // Auto-reply to applicant (no attachment)
@@ -228,6 +234,12 @@ export async function POST(request: Request) {
               Feel free to <a href="https://ostutelage.tech" style="color: #3b82f6; font-weight: 500;">explore our platform</a> or 
               learn more about our <a href="https://ostutelage.tech/schools" style="color: #3b82f6; font-weight: 500;">educational programs</a>.
             </p>
+
+            <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; border-left: 4px solid #0ea5e9; margin-top: 20px;">
+              <p style="color: #0369a1; margin: 0; font-size: 14px;">
+                <strong>💡 Tip:</strong> Keep an eye on your email (including spam folder) for updates from our hiring team.
+              </p>
+            </div>
           </div>
 
           <div style="text-align: center; margin-bottom: 30px;">
