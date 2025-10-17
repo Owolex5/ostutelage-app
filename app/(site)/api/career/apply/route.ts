@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     // Parse multipart form data
     const formData = await request.formData();
     
-    // Extract and validate form fields with TypeScript safety
+    // Extract and validate form fields
     const name = formData.get('name')?.toString().trim();
     const email = formData.get('email')?.toString().trim();
     const phone = formData.get('phone')?.toString().trim() || "Not provided";
@@ -19,9 +19,7 @@ export async function POST(request: Request) {
     // Validate required fields
     if (!name || !email || !resumeFile || resumeFile.size === 0) {
       return NextResponse.json(
-        { 
-          message: "Missing required fields: name, email, and resume are required" 
-        }, 
+        { message: "Missing required fields: name, email, and resume are required" }, 
         { status: 400 }
       );
     }
@@ -29,77 +27,78 @@ export async function POST(request: Request) {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+      return NextResponse.json({ message: "Invalid email format" }, { status: 400 });
+    }
+
+    // FIXED: Enhanced MIME type mapping for resume files
+    const resumeTypeMap: Record<string, { mime: string; ext: string }> = {
+      'application/pdf': { mime: 'application/pdf', ext: '.pdf' },
+      'application/msword': { mime: 'application/msword', ext: '.doc' },
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { 
+        mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+        ext: '.docx' 
+      }
+    };
+
+    const fileInfo = resumeTypeMap[resumeFile.type];
+    if (!fileInfo) {
       return NextResponse.json(
-        { message: "Invalid email format" }, 
+        { message: "Please upload a PDF or Word document (.doc, .docx) for your resume" },
         { status: 400 }
       );
     }
-
-    // Validate resume file
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword', 
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    ];
 
     // File size limit: 5MB for resumes
     const maxFileSize = 5 * 1024 * 1024; // 5MB
     if (resumeFile.size > maxFileSize) {
       return NextResponse.json(
-        { 
-          message: "Resume file too large. Please upload a file smaller than 5MB" 
-        },
+        { message: "Resume file too large. Please upload a file smaller than 5MB" },
         { status: 400 }
       );
     }
 
-    if (!allowedTypes.includes(resumeFile.type)) {
-      return NextResponse.json(
-        { 
-          message: "Please upload a PDF or Word document (.doc, .docx) for your resume" 
-        },
-        { status: 400 }
-      );
-    }
-
-    // Process resume file as buffer (no temp files)
+    // Process resume file as buffer
     const bytes = await resumeFile.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const resumeFileName = resumeFile.name || `resume-${Date.now()}.pdf`;
+    
+    // FIXED: Proper filename with correct extension
+    const originalName = resumeFile.name || `resume-${Date.now()}`;
+    const cleanName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const resumeFileName = cleanName.endsWith(fileInfo.ext) 
+      ? cleanName 
+      : `${cleanName}${fileInfo.ext}`;
 
     // Determine application type
     const isFaculty = !!experience;
     const applicationType = isFaculty ? 'Faculty' : role;
-    const subject = `New ${applicationType} Application: ${name}`;
+    const subject = `New ${applicationType} Application: ${name} - ${resumeFileName}`;
 
-    // Create transporter (same config as working forms)
+    // Create transporter
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST, // smtp-relay.brevo.com
+      host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT || 587),
       secure: false,
       pool: true,
       auth: {
-        user: process.env.SMTP_USER, // Brevo SMTP Relay ID
-        pass: process.env.SMTP_PASS, // Brevo SMTP Key
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
       tls: {
         rejectUnauthorized: false,
       },
       connectionTimeout: 10000,
-      greetingTimeout: 5000,
       socketTimeout: 10000,
     });
 
-    // Verify connection (skip in dev)
-    if (process.env.NODE_ENV !== "development") {
+    // Skip verify in production to avoid timeouts
+    if (process.env.NODE_ENV === "development") {
       await transporter.verify();
-      console.log("Brevo SMTP connection verified for career application");
+      console.log("SMTP connection verified for career application");
     }
 
-    // CRITICAL: Use verified sender
-    const verifiedSender = "info@ostutelage.tech"; // Must be verified in Brevo
+    const verifiedSender = "info@ostutelage.tech";
 
-    // FIXED: Corrected escapeHtml function
+    // HTML escape utility
     const escapeHtml = (unsafe?: string): string => {
       if (typeof unsafe !== 'string') return '';
       return unsafe.replace(/[&<>"']/g, (m) => ({
@@ -107,19 +106,29 @@ export async function POST(request: Request) {
         '<': '&lt;',
         '>': '&gt;',
         '"': '&quot;',
-        "'": '&#39;',  // FIXED: Single quote key (not empty string)
+        "'": '&#39;',
       }[m] || m));
     };
 
-    // Admin notification email
-    await transporter.sendMail({
-      from: `"OsTutelage Careers" <${verifiedSender}>`, // FIXED: Verified sender
-      to: "info@ostutelage.tech",
-      replyTo: email, // Allow direct reply to applicant
-      subject,
+    // FIXED: Enhanced resume attachment configuration
+    const resumeAttachment = {
+      filename: resumeFileName,
+      content: buffer,
+      contentType: fileInfo.mime, // FIXED: Exact MIME type from map
+      disposition: 'attachment', // FIXED: Force download for documents
       headers: {
-        "X-Mailin": "spf@brevo.com",
+        'Content-Disposition': `attachment; filename="${resumeFileName}"`,
+        'Content-Transfer-Encoding': 'base64', // FIXED: Binary encoding for PDFs/Docs
       },
+    };
+
+    // Admin notification email with FIXED attachment
+    await transporter.sendMail({
+      from: `"OsTutelage Careers" <${verifiedSender}>`,
+      to: "info@ostutelage.tech",
+      replyTo: email,
+      subject,
+      headers: { "X-Mailin": "spf@brevo.com" },
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
           <h2 style="color: #1f2937; font-size: 24px; margin-bottom: 20px;">New ${applicationType} Application</h2>
@@ -138,13 +147,13 @@ export async function POST(request: Request) {
             ${isFaculty ? `
               <div style="background: #eff6ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6; margin-bottom: 15px;">
                 <h3 style="color: #1e40af; margin-top: 0; font-size: 16px;">🎓 Faculty Experience</h3>
-                <p style="color: #1e3a8a; margin: 0; line-height: 1.5;">${escapeHtml(experience).replace(/\n/g, '<br>')}</p>
+                <p style="color: #1e3a8a; margin: 0; line-height: 1.5;">${escapeHtml(experience || '').replace(/\n/g, '<br>')}</p>
               </div>
             ` : `
               <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; border-left: 4px solid #16a34a; margin-bottom: 15px;">
                 <h3 style="color: #166534; margin-top: 0; font-size: 16px;">📋 Application Details</h3>
                 <p style="color: #065f46; margin-bottom: 8px;"><strong>Role:</strong> ${escapeHtml(role)}</p>
-                ${coverLetter !== "Not provided" ? `
+                ${coverLetter && coverLetter !== "Not provided" ? `
                   <p style="color: #065f46; margin-bottom: 0;"><strong>Cover Letter:</strong><br>${escapeHtml(coverLetter).replace(/\n/g, '<br>')}</p>
                 ` : ''}
               </div>
@@ -152,14 +161,19 @@ export async function POST(request: Request) {
 
             <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #d97706;">
               <strong>📎 Resume Attached:</strong> ${escapeHtml(resumeFileName)}<br>
-              <small style="color: #92400e;">Type: ${escapeHtml(resumeFile.type)} | Size: ${(resumeFile.size / 1024 / 1024).toFixed(2)} MB</small>
+              <small style="color: #92400e;">
+                Type: ${escapeHtml(fileInfo.mime)} | 
+                Extension: ${fileInfo.ext} | 
+                Size: ${(resumeFile.size / 1024 / 1024).toFixed(2)} MB
+              </small><br>
+              <em style="color: #92400e;">Click to download and review the candidate's qualifications</em>
             </div>
           </div>
           
           <div style="background: #f3f4f6; padding: 15px; border-radius: 8px;">
             <p style="color: #6b7280; font-size: 14px; margin: 0;">
-              <em>Application received: ${new Date().toLocaleString()}</em><br>
-              Review this candidate's qualifications and resume for the ${applicationType} position.
+              <em>Application received: ${new Date().toLocaleString('en-US', { timeZone: 'Africa/Lagos' })}</em><br>
+              Review this candidate's qualifications and resume for the ${escapeHtml(applicationType)} position.
             </p>
           </div>
           
@@ -168,28 +182,20 @@ export async function POST(request: Request) {
           </p>
         </div>
       `,
-      attachments: [
-        {
-          filename: resumeFileName,
-          content: buffer, // FIXED: Use buffer directly
-          contentType: resumeFile.type,
-        },
-      ],
+      attachments: [resumeAttachment], // FIXED: Use enhanced attachment config
     });
 
-    // Auto-reply to applicant
+    // Auto-reply to applicant (no attachment)
     await transporter.sendMail({
-      from: `"OsTutelage Academy" <${verifiedSender}>`, // FIXED: Verified sender
+      from: `"OsTutelage Academy" <${verifiedSender}>`,
       to: email,
-      subject: `Thank You for Your ${applicationType} Application, ${name}!`,
-      headers: {
-        "X-Mailin": "spf@brevo.com",
-      },
+      subject: `Thank You for Your ${escapeHtml(applicationType)} Application, ${escapeHtml(name)}!`,
+      headers: { "X-Mailin": "spf@brevo.com" },
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
           <div style="text-align: center; margin-bottom: 30px; padding: 30px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 12px; color: white;">
             <h1 style="font-size: 28px; font-weight: 700; margin: 0 0 10px 0;">Welcome to the Team, ${escapeHtml(name)}! 👋</h1>
-            <p style="font-size: 16px; margin: 0; opacity: 0.95;">Your ${applicationType} Application Has Been Received</p>
+            <p style="font-size: 16px; margin: 0; opacity: 0.95;">Your ${escapeHtml(applicationType)} Application Has Been Received</p>
           </div>
           
           <div style="background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); margin-bottom: 25px;">
@@ -258,14 +264,22 @@ export async function POST(request: Request) {
     console.error("Career Application Error:", {
       message: error.message,
       code: error.code,
+      response: error.response?.message,
       stack: error.stack,
     });
 
-    // Specific error handling
+    // Enhanced error handling
     if (error.code === "EAUTH") {
       return NextResponse.json(
         { message: "Email service authentication failed. Please try again later." },
         { status: 503 }
+      );
+    }
+
+    if (error.code?.includes('attachment') || error.message.includes('file')) {
+      return NextResponse.json(
+        { message: "Resume processing failed. Please try a smaller file or PDF format." },
+        { status: 400 }
       );
     }
 
