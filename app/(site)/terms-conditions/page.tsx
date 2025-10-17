@@ -154,7 +154,7 @@ export default function TermsConditions() {
             <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-white">Email: hello@ostutelage.com</p>
+                  <p className="font-medium text-gray-900 dark:text-white">Email: info@ostutelage.tech</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Monday - Friday: 9AM - 6PM WAT</p>
                 </div>
                 <a

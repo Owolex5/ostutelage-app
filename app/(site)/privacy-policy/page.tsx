@@ -166,7 +166,7 @@ export default function PrivacyPolicy() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    Email: hello@ostutelage.com
+                    Email: info@ostutelage.tech
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     Data Protection Officer
@@ -176,7 +176,7 @@ export default function PrivacyPolicy() {
                   </p>
                 </div>
                 <a
-                  href="mailto:hello@ostutelage.com"
+                  href="mailto:info@ostutelage.tech"
                   className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
                 >
                   Contact Us
