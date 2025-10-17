@@ -50,13 +50,16 @@ export async function POST(request: Request) {
     // Write resume to temporary file
     await fs.writeFile(tempFilePath, buffer);
 
-   const transporter = nodemailer.createTransport({
+  const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "mail.ostutelage.tech",
-  port: Number(process.env.SMTP_PORT) || 465, // 465 for SSL
-  secure: true, // true for SSL
+  port: Number(process.env.SMTP_PORT) || 587, // 587 = Non-SSL / STARTTLS
+  secure: false, // use STARTTLS instead of direct SSL
   auth: {
     user: process.env.SMTP_USER || "info@ostutelage.tech",
-    pass: process.env.SMTP_PASS, // value will come from environment variables
+    pass: process.env.SMTP_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false, // <-- ignore invalid cert
   },
 });
 
