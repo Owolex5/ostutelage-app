@@ -99,7 +99,7 @@ export async function POST(request: Request) {
     // CRITICAL: Use verified sender
     const verifiedSender = "info@ostutelage.tech"; // Must be verified in Brevo
 
-    // HTML escape utility
+    // FIXED: Corrected escapeHtml function
     const escapeHtml = (unsafe?: string): string => {
       if (typeof unsafe !== 'string') return '';
       return unsafe.replace(/[&<>"']/g, (m) => ({
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
         '<': '&lt;',
         '>': '&gt;',
         '"': '&quot;',
-        "'': '&#39;',
+        "'": '&#39;',  // FIXED: Single quote key (not empty string)
       }[m] || m));
     };
 
