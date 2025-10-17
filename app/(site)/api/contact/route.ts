@@ -11,16 +11,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
     }
 
- const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "mail.ostutelage.tech",
-  port: Number(process.env.SMTP_PORT) || 587, // 587 = Non-SSL / STARTTLS
-  secure: false, // use STARTTLS instead of direct SSL
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,        // uses Vercel variable
+  port: Number(process.env.SMTP_PORT),// uses Vercel variable
+  secure: false,                       // STARTTLS
   auth: {
-    user: process.env.SMTP_USER || "info@ostutelage.tech",
-    pass: process.env.SMTP_PASS,
+    user: process.env.SMTP_USER,       // uses Vercel variable
+    pass: process.env.SMTP_PASS,       // uses Vercel variable
   },
   tls: {
-    rejectUnauthorized: false, // <-- ignore invalid cert
+    rejectUnauthorized: false,
   },
 });
 
