@@ -2,6 +2,18 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
+// FIXED: Move escapeHtml to top (before usage)
+const escapeHtml = (unsafe?: string): string => {
+  if (typeof unsafe !== 'string') return '';
+  return unsafe.replace(/[&<>"']/g, (m) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[m] || m));
+};
+
 export async function POST(request: Request) {
   try {
     // Parse multipart form data
@@ -71,10 +83,11 @@ export async function POST(request: Request) {
     // Determine application type
     const isFaculty = !!experience;
     const applicationType = isFaculty ? 'Faculty' : role;
+    // FIXED: Now escapeHtml is declared and available
     const subject = `New ${applicationType} Application: ${escapeHtml(name)} - ${resumeFileName}`;
 
     // Create transporter
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT || 587),
       secure: false,
@@ -97,18 +110,6 @@ export async function POST(request: Request) {
     }
 
     const verifiedSender = "info@ostutelage.tech";
-
-    // HTML escape utility
-    const escapeHtml = (unsafe?: string): string => {
-      if (typeof unsafe !== 'string') return '';
-      return unsafe.replace(/[&<>"']/g, (m) => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;',
-      }[m] || m));
-    };
 
     // FIXED: Type-safe resume attachment configuration (always document)
     const createResumeAttachment = (

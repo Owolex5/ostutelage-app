@@ -2,6 +2,18 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
+// FIXED: Move escapeHtml to top level (before POST function)
+const escapeHtml = (unsafe?: string): string => {
+  if (typeof unsafe !== 'string') return '';
+  return unsafe.replace(/[&<>"']/g, (m) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[m] || m));
+};
+
 export async function POST(request: Request) {
   try {
     // Parse multipart form data
@@ -28,7 +40,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Invalid email format" }, { status: 400 });
     }
 
-    // FIXED: Enhanced MIME type mapping with isImage flag
+    // Enhanced MIME type mapping with isImage flag
     const fileTypeMap: Record<string, { mime: string; ext: string; isImage: boolean }> = {
       'application/pdf': { mime: 'application/pdf', ext: '.pdf', isImage: false },
       'application/msword': { mime: 'application/msword', ext: '.doc', isImage: false },
@@ -68,12 +80,15 @@ export async function POST(request: Request) {
     const bytes = await portfolioFile.arrayBuffer();
     const buffer = Buffer.from(bytes);
     
-    // FIXED: Proper filename with correct extension
+    // Proper filename with correct extension
     const originalName = portfolioFile.name || `portfolio-${Date.now()}`;
     const cleanName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
     const portfolioFileName = cleanName.endsWith(fileInfo.ext) 
       ? cleanName 
       : `${cleanName}${fileInfo.ext}`;
+
+    // FIXED: Now escapeHtml is available for subject line
+    const subject = `New Writer Application: ${escapeHtml(name)} - ${portfolioFileName}`;
 
     // Create transporter
     const transporter = nodemailer.createTransporter({
@@ -100,20 +115,13 @@ export async function POST(request: Request) {
 
     const verifiedSender = "info@ostutelage.tech";
 
-    // HTML escape utility
-    const escapeHtml = (unsafe?: string): string => {
-      if (typeof unsafe !== 'string') return '';
-      return unsafe.replace(/[&<>"']/g, (m) => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;',
-      }[m] || m));
-    };
-
-    // FIXED: Type-safe attachment configuration
-    const createAttachment = (fileBuffer: Buffer, fileName: string, mimeType: string, isImage: boolean): nodemailer.AttachmentOptions => {
+    // Type-safe attachment configuration
+    const createAttachment = (
+      fileBuffer: Buffer, 
+      fileName: string, 
+      mimeType: string, 
+      isImage: boolean
+    ): nodemailer.AttachmentOptions => {
       const baseConfig: nodemailer.AttachmentOptions = {
         filename: fileName,
         content: fileBuffer,
@@ -146,7 +154,7 @@ export async function POST(request: Request) {
       from: `"OsTutelage Careers" <${verifiedSender}>`,
       to: "info@ostutelage.tech",
       replyTo: email,
-      subject: `New Writer Application: ${escapeHtml(name)} - ${portfolioFileName}`,
+      subject,
       headers: { "X-Mailin": "spf@brevo.com" },
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
