@@ -1,3 +1,4 @@
+// app/(site)/api/contact/route.ts
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
@@ -16,19 +17,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Invalid email format" }, { status: 400 });
     }
 
-    const transporter = nodemailer.createTransporter({
+    // FIXED: Use createTransport (not createTransporter)
+    const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST, // smtp-relay.brevo.com
       port: Number(process.env.SMTP_PORT), // 587
       secure: false, // STARTTLS
       pool: true, // Reuse connections for better performance
       auth: {
-        user: process.env.SMTP_USER, // Your Brevo SMTP Relay ID (e.g., 998233001) - NOT an email
-        pass: process.env.SMTP_PASS, // Your Brevo SMTP Key (not API key)
+        user: process.env.SMTP_USER, // Your Brevo SMTP Relay ID (e.g., 998233001)
+        pass: process.env.SMTP_PASS, // Your Brevo SMTP Key
       },
       tls: {
         rejectUnauthorized: false,
       },
-      // Brevo-specific: Add connection timeouts and debug
+      // Connection timeouts and debug
       connectionTimeout: 10000,
       greetingTimeout: 5000,
       socketTimeout: 10000,
@@ -36,34 +38,34 @@ export async function POST(request: Request) {
       logger: process.env.NODE_ENV === "development",
     });
 
-    // Verify connection before sending (skip in dev for speed)
+    // Verify connection before sending (skip in dev)
     if (process.env.NODE_ENV !== "development") {
       await transporter.verify();
       console.log("Brevo SMTP connection verified");
     }
 
-    const verifiedSender = "info@ostutelage.tech"; // Must match your verified sender in Brevo
+    // CRITICAL FIX: Use verified sender, NOT SMTP_USER (which is a number)
+    const verifiedSender = "info@ostutelage.tech"; // Must be verified in Brevo
 
-    // Helper to escape HTML (basic XSS prevention)
+    // Helper to escape HTML (prevents XSS)
     const escapeHtml = (unsafe: string) => {
       return unsafe.replace(/[&<>"']/g, (m) => ({
         '&': '&amp;',
         '<': '&lt;',
         '>': '&gt;',
         '"': '&quot;',
-        "'": '&#39;'
+        "'": '&#39;',
       })[m]);
     };
 
     // Email to OsTutelage (info@ostutelage.tech)
     await transporter.sendMail({
-      from: `"OsTutelage Contact" <${verifiedSender}>`, // Fixed verified sender
+      from: `"OsTutelage Contact" <${verifiedSender}>`, // FIXED: Use verified email, not SMTP_USER
       to: "info@ostutelage.tech",
-      replyTo: email, // Allows easy reply to user
-      subject: `New Contact Form Submission: ${subject}`,
+      replyTo: email, // Allows admin to reply directly to user
+      subject: `New Contact Form Submission: ${escapeHtml(subject)}`,
       headers: {
-        // Brevo deliverability boost (keep X-Mailin, drop X-Brevo-API)
-        "X-Mailin": "spf@brevo.com",
+        "X-Mailin": "spf@brevo.com", // Brevo deliverability header
       },
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height: 1.6;">
@@ -83,7 +85,7 @@ export async function POST(request: Request) {
 
     // Auto-reply to user
     await transporter.sendMail({
-      from: `"OsTutelage Academy" <${verifiedSender}>`, // Same verified sender
+      from: `"OsTutelage Academy" <${verifiedSender}>`, // FIXED: Same verified sender
       to: email,
       subject: "Thank You for Contacting OsTutelage Academy! 🎓",
       headers: {
@@ -94,44 +96,53 @@ export async function POST(request: Request) {
           <h2 style="color: #28a745;">Thank You for Reaching Out! 📧</h2>
           <p>Dear <strong>${escapeHtml(name)}</strong>,</p>
           <p>We've received your message about <strong>"${escapeHtml(subject)}"</strong>. Our team will review it and get back to you within 24-48 hours.</p>
-          <p>Check your inbox (and spam folder) for our response!</p>
+          <p>Please check your inbox (and spam folder) for our response!</p>
           <div style="background: #e7f3ff; padding: 15px; border-radius: 5px; margin: 20px 0;">
             <h3>Your Message:</h3>
             <p>${message.replace(/\n/g, '<br>')}</p>
           </div>
-          <p><strong>Urgent help?</strong> Contact us via:</p>
+          <p><strong>Need urgent help?</strong> Contact us via:</p>
           <ul>
             <li>📱 WhatsApp: <a href="https://wa.me/2349036508361">+234 903 650 8361</a></li>
             <li>📧 Email: <a href="mailto:info@ostutelage.tech">info@ostutelage.tech</a></li>
           </ul>
-          <p>Thanks for choosing OsTutelage Academy! 🚀</p>
-          <p>Best,<br><strong>The OsTutelage Team</strong></p>
+          <p>Thanks for choosing <strong>OsTutelage Academy</strong>! 🚀</p>
+          <p>Best regards,<br><strong>The OsTutelage Team</strong></p>
         </div>
       `,
     });
 
-    return NextResponse.json({ message: "Message sent successfully! We'll respond soon." }, { status: 200 });
+    return NextResponse.json({ 
+      message: "Message sent successfully! We'll respond soon." 
+    }, { status: 200 });
 
   } catch (error: any) {
     console.error("Brevo Email Error:", {
       message: error.message,
       code: error.code,
-      response: error.response?.data || error.response, // Full Brevo rejection details
+      response: error.response?.data || error.response,
       stack: error.stack,
     });
 
-    // Specific Brevo rejection handling
-    if (error.response && (error.response as any).message?.includes("sender you used")) {
+    // Handle specific Brevo errors
+    if (error.response && error.response.includes("sender you used")) {
       return NextResponse.json(
-        { message: "Email rejected by Brevo. Verify your sender/domain in Brevo dashboard." },
+        { message: "Email rejected by Brevo. Please verify 'info@ostutelage.tech' in your Brevo dashboard under Senders & IP." },
         { status: 502 }
       );
     }
 
     if (error.code === "EAUTH") {
       return NextResponse.json(
-        { message: "Authentication failed. Check your Brevo SMTP credentials in env vars." },
+        { message: "Brevo authentication failed. Check SMTP_USER (should be your relay ID) and SMTP_PASS in Vercel env vars." },
         { status: 401 }
+      );
+    }
+
+    if (error.code === "ECONNECTION") {
+      return NextResponse.json(
+        { message: "Connection to Brevo failed. Please try again later." },
+        { status: 503 }
       );
     }
 
