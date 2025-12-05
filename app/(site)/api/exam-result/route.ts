@@ -56,103 +56,108 @@ export async function POST(request: Request) {
     });
 
     // === STUDENT RESULT EMAIL (Beautiful & High-Converting) ===
-    await transporter.sendMail({
-      from: `"OsTutelage Academy" <info@ostutelage.tech>`,
-      to: email,
-      subject: `Congratulations ${name.split(" ")[0]}! You've Won ${scholarship} 🎉`,
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <title>Your OsTutelage Scholarship Result</title>
-        </head>
-        <body style="margin:0; padding:0; background:#f8fafc; font-family:system-ui,Arial,sans-serif;">
-          <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.05);">
-            
-            <!-- Header -->
-            <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 30px; text-align: center; color: white;">
-              <h1 style="margin:0; font-size: 32px; font-weight: 800;">Congratulations, ${name.split(" ")[0]}!</h1>
-              <p style="margin: 12px 0 0; font-size: 18px; opacity: 0.95;">You’ve successfully completed the OsTutelage Scholarship Exam</p>
+   // === STUDENT RESULT EMAIL — FINAL VERSION (2025) ===
+await transporter.sendMail({
+  from: `"OsTutelage Academy" <info@ostutelage.tech>`,
+  to: email,
+  subject: `Congrats ${name.split(" ")[0]}! You Won ${scholarshipDiscount}% Scholarship (${promoCode})`,
+  html: `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Your OsTutelage Scholarship</title>
+    </head>
+    <body style="margin:0; padding:0; background:#f8fafc; font-family:system-ui,Arial,sans-serif;">
+      <div style="max-width: 600px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.08);">
+
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 30px; text-align: center; color: white;">
+          <h1 style="margin:0; font-size: 36px; font-weight: 900;">CONGRATULATIONS ${name.split(" ")[0].toUpperCase()}!</h1>
+          <p style="margin: 12px 0 0; font-size: 19px; opacity: 0.95;">You’ve earned a massive scholarship!</p>
+        </div>
+
+        <!-- Score -->
+        <div style="text-align: center; padding: 30px 20px;">
+          <div style="display: inline-block; background: #ecfdf5; padding: 24px 48px; border-radius: 24px; border: 5px solid #10b981;">
+            <div style="font-size: 72px; font-weight: 900; color: #059669; line-height: 1;">${score}%</div>
+            <div style="font-size: 20px; color: #065f46; margin-top: 8px;">Your Final Score</div>
+          </div>
+        </div>
+
+        <!-- Scholarship Badge -->
+        <div style="text-align: center; padding: 0 30px 20px;">
+          <div style="background: ${badgeColor}; color: white; padding: 20px; border-radius: 20px; display: inline-block; font-size: 28px; font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            ${scholarship}
+          </div>
+          <p style="font-size: 32px; font-weight: bold; color: #059669; margin: 16px 0 8px;">
+            ${scholarshipDiscount}% Scholarship Unlocked!
+          </p>
+        </div>
+
+        <!-- Promo Code Box — SUPER VISIBLE -->
+        <div style="background: #fffbeb; border: 3px dashed #f59e0b; padding: 20px; margin: 20px 40px; border-radius: 16px; text-align: center;">
+          <p style="margin:0 0 12px; font-size: 16px; color: #92400e;">Your Exclusive Scholarship Code... <br> use as promo code on sign up</p>
+          <div style="background: #fbbf24; color: #451a03; padding: 16px; border-radius: 12px; font-size: 32px; font-weight: 900; letter-spacing: 4px;">
+            ${promoCode}
+          </div>
+          <p style="margin: 12px 0 0; font-size: 14px; color: #92400e;">
+            Use this code at checkout → ${scholarshipDiscount}% OFF instantly!
+          </p>
+        </div>
+
+        <!-- Score Breakdown -->
+        <div style="padding: 30px; background: #f8fafc;">
+          <h3 style="text-align: center; color: #374151; margin-bottom: 20px;">Your Performance</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 420px; margin: 0 auto;">
+            <div style="background: white; padding: 18px; border-radius: 14px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
+              <div style="font-size: 14px; color: #6b7280;">MCQs</div>
+              <div style="font-size: 28px; font-weight: bold; color: #059669;">${mcqCorrect}/45</div>
+              <div style="font-size: 15px; color: #4b5563;">${mcqMarks}/80 marks</div>
             </div>
-
-            <!-- Score Badge -->
-            <div style="text-align: center; padding: 30px 20px 20px;">
-              <div style="display: inline-block; background: #ecfdf5; padding: 20px 40px; border-radius: 20px; border: 4px solid #10b981;">
-                <div style="font-size: 64px; font-weight: 900; color: #059669; line-height: 1;">${score}%</div>
-                <div style="font-size: 18px; color: #065f46; margin-top: 8px;">Your Final Score</div>
-              </div>
-            </div>
-
-            <!-- Scholarship Award -->
-            <div style="text-align: center; padding: 0 30px;">
-              <div style="background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); padding: 24px; border-radius: 16px; margin: 20px 0;">
-                <h2 style="margin:0 0 12px; color: #166534; font-size: 28px;">
-                  ${scholarship === "Try Again" ? "Great Effort!" : `You’ve Won ${scholarship}!`}
-                </h2>
-                ${scholarship !== "Try Again" ? `
-                  <p style="margin:0; font-size: 18px; color: #166534;">
-                    This scholarship is reserved for you at <strong>${school}</strong>
-                  </p>
-                ` : `
-                  <p style="margin:0; font-size: 17px; color: #166534;">
-                    Keep practicing — you're very close to a scholarship!
-                  </p>
-                `}
-              </div>
-            </div>
-
-            <!-- Score Breakdown -->
-            <div style="padding: 30px; background: #f8fafc;">
-              <h3 style="text-align: center; color: #374151; margin-bottom: 20px;">Score Breakdown</h3>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 400px; margin: 0 auto;">
-                <div style="background: white; padding: 16px; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                  <div style="font-size: 13px; color: #6b7280;">MCQ Section</div>
-                  <div style="font-size: 24px; font-weight: bold; color: #059669;">${mcqCorrect}/45</div>
-                  <div style="font-size: 14px; color: #4b5563;">${mcqMarks}/80 marks</div>
-                </div>
-                <div style="background: white; padding: 16px; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                  <div style="font-size: 13px; color: #6b7280;">Short Answers</div>
-                  <div style="font-size: 24px; font-weight: bold; color: #0891b2;">${shortMarks}/20</div>
-                  <div style="font-size: 14px; color: #4b5563;">AI Graded</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- CTA Button -->
-            ${score >= 48 ? `
-              <div style="text-align: center; padding: 30px;">
-                <a href="https://app.ostutelage.tech/portal/signup.php?promo=2025OS&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&score=${score}"
-                   style="background: #059669; color: white; padding: 16px 40px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 12px; display: inline-block; box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3);">
-                  Claim Your Scholarship Now →
-                </a>
-                <p style="margin: 20px 0 0; color: #6b7280; font-size: 14px;">
-                  Offer valid for the next 7 days only!
-                </p>
-              </div>
-            ` : `
-              <div style="text-align: center; padding: 30px;">
-                <a href="https://ostutelage.tech/practice-tests" style="background: #6366f1; color: white; padding: 16px 40px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 12px; display: inline-block;">
-                  Practice More & Win Next Time →
-                </a>
-              </div>
-            `}
-
-            <!-- Footer -->
-            <div style="background: #1e293b; color: #94a3b8; padding: 30px; text-align: center; font-size: 14px;">
-              <p style="margin: 0 0 12px;"><strong>OsTutelage Academy</strong></p>
-              <p style="margin: 0;">
-                Transforming education with expert mentorship<br>
-                <a href="https://ostutelage.tech" style="color: #60a5fa; text-decoration: none;">ostutelage.tech</a> • 
-                <a href="mailto:info@ostutelage.tech" style="color: #60a5fa;">info@ostutelage.tech</a>
-              </p>
+            <div style="background: white; padding: 18px; border-radius: 14px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
+              <div style="font-size: 14px; color: #6b7280;">Short Answers</div>
+              <div style="font-size: 28px; font-weight: bold; color: #0891b2;">${shortMarks}/20</div>
+              <div style="font-size: 15px; color: #4b5563;">AI Graded</div>
             </div>
           </div>
-        </body>
-        </html>
-      `,
-    });
+        </div>
+
+        <!-- CTA Buttons -->
+        <div style="text-align: center; padding: 40px 30px; background: white;">
+          <p style="font-size: 20px; margin-bottom: 20px; color: #1f2937;">
+            <strong>Claim your scholarship in 1 click!</strong>
+          </p>
+          
+          <!-- Direct Link (try to auto-apply) -->
+          <a href="https://app.ostutelage.tech/portal/signup.php?promo=${promoCode}&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&score=${score}"
+             style="background: #059669; color: white; padding: 18px 48px; font-size: 20px; font-weight: bold; text-decoration: none; border-radius: 16px; display: inline-block; margin: 10px; box-shadow: 0 10px 30px rgba(5,150,105,0.4);">
+            Apply Now with Code ${promoCode} →
+          </a>
+
+          <p style="margin: 30px 0 10px; color: #6b7280;">
+            Or go to <a href="https://app.ostutelage.tech/portal/signup.php" style="color: #059669; font-weight: bold;">signup page</a> and enter code manually
+          </p>
+          <p style="color: #dc2626; font-weight: bold; font-size: 16px;">
+            Offer expires in 7 days!
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="background: #0f172a; color: #94a3b8; padding: 30px; text-align: center; font-size: 14px;">
+          <p style="margin: 0 0 12px;"><strong>OsTutelage Academy</strong></p>
+          <p style="margin: 0;">
+            India’s fastest-growing tech mentorship program<br>
+            <a href="https://ostutelage.tech" style="color: #60a5fa;">ostutelage.tech</a> • 
+            <a href="mailto:info@ostutelage.tech" style="color: #60a5fa;">info@ostutelage.tech</a>
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `,
+});
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
