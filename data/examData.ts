@@ -21,14 +21,9 @@ export interface ShortAnswer extends BaseQuestion {
 
 export type ExamQuestion = MCQ | ShortAnswer;
 
-
-
-// === FULL 100-QUESTION POOL (95 MCQ + 5 SHORT) ===
-const baseQuestions: ExamQuestion[] = [
-
-  // ==============================================================
-  // SECTION 1: COMPUTER & DIGITAL LITERACY (25 MCQs)
-  // ==============================================================
+// ==================== ALL QUESTIONS (95 MCQs + 17 SHORTS) ====================
+const allQuestions: ExamQuestion[] = [
+  // YOUR 95 MCQs — keep exactly as you have them (I'm showing just a few for reference)
   {
     type: "mcq",
     section: "Computer & Digital Literacy",
@@ -1084,7 +1079,7 @@ export const osTutelageExam = {
   ],
   getQuestions: (): ExamQuestion[] => {
     const randomMCQs = getRandomItems(mcqs, 45);
-    const randomShorts = getRandomItems(shorts, 5); // NOW TRULY RANDOM!
+    const randomShorts = getRandomItems(shorts, 5);
     return [...randomMCQs, ...randomShorts];
   },
 };
