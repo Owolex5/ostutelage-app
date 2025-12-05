@@ -39,6 +39,7 @@ interface ResultData extends FormData {
   promoCode: string;
   discountPercent: number;
   badgeColor: string;
+  string;
   message: string;
   shortAnswers: ShortAnswerResult[];
   timestamp: string;
@@ -106,92 +107,93 @@ export default function ExamPage() {
   };
 
   const submitExam = async () => {
-  if (isSubmitting) return;
-  setIsSubmitting(true);
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
-  // Declare these first so they're available for the result object
-  let mcqCorrect = 0;
-  let mcqMarks = 0;
-  let shortMarks = 0;
-  const shortResults: ShortAnswerResult[] = [];
+    // Declare variables in the correct scope so they can be used in result object
+    let mcqCorrect = 0;
+    let mcqMarks = 0;
+    let shortMarks = 0;
+    const shortResults: ShortAnswerResult[] = [];
 
-  try {
-    const mcqQuestions = questions.slice(0, 45) as MCQ[];
-    mcqCorrect = mcqQuestions.filter((q, i) => answers[i] === q.correctAnswer).length;
-    mcqMarks = Math.round((mcqCorrect / 45) * 70);
+    try {
+      const mcqQuestions = questions.slice(0, 45) as MCQ[];
+      mcqCorrect = mcqQuestions.filter((q, i) => answers[i] === q.correctAnswer).length;
+      mcqMarks = Math.round((mcqCorrect / 45) * 70);
 
-    for (let i = 0; i < 5; i++) {
-      {
-      const q = questions[45 + i] as ShortAnswer;
-      const userAnswer = shortAnswers[i] || "";
-      let aiScore = 0;
-      let feedback = "No answer provided.";
+      // Grade 5 short answers
+      for (let i = 0; i < 5; i++) {
+        const q = questions[45 + i] as ShortAnswer;
+        const userAnswer = shortAnswers[i] || "";
+        let aiScore = 0;
+        let feedback = "No answer provided.";
 
-      if (userAnswer.trim()) {
-        try {
-          const res = await fetch("/api/grade-short", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              question: q.question,
-              idealAnswer: q.idealAnswer,
-              userAnswer,
-            }),
-          });
-          if (!res.ok) throw new Error("AI error");
-          const data = await res.json();
-          aiScore = data.score || 0;
-          feedback = data.feedback || "Graded by AI.";
-        } catch (err) {
-          feedback = "AI unavailable — fallback used";
-          aiScore = Math.min(10, Math.ceil(userAnswer.trim().length / 12));
+        if (userAnswer.trim()) {
+          try {
+            const res = await fetch("/api/grade-short", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                question: q.question,
+                idealAnswer: q.idealAnswer,
+                userAnswer,
+              }),
+            });
+            if (!res.ok) throw new Error("AI error");
+            const data = await res.json();
+            aiScore = data.score || 0;
+            feedback = data.feedback || "Graded by AI.";
+          } catch (err) {
+            feedback = "AI unavailable — fallback used";
+            aiScore = Math.min(10, Math.ceil(userAnswer.trim().length / 12));
+          }
         }
+
+        const scaled = Math.round((aiScore / 10) * 6);
+        shortMarks += scaled;
+        shortResults.push({
+          question: q.question,
+          userAnswer,
+          aiScore,
+          scaledShortScore: scaled,
+          feedback,
+        });
       }
 
-      const scaled = Math.round((aiScore / 10) * 6);
-      shortMarks += scaled;
-      shortResults.push({
-        question: q.question,
-        userAnswer,
-        aiScore,
-        scaledShortScore: scaled,
-        feedback,
+      const totalScore = mcqMarks + shortMarks;
+      const scholarship = getScholarshipByScore(totalScore);
+
+      const result: ResultData = {
+        ...form,
+        score: totalScore,
+        mcqCorrect,
+        mcqMarks,
+        shortMarks,
+        scholarship: scholarship.name,
+        promoCode: scholarship.code,
+        discountPercent: scholarship.discount,
+        badgeColor: scholarship.badgeColor,
+        message: scholarship.message,
+        shortAnswers: shortResults,
+        timestamp: new Date().toISOString(),
+      };
+
+      await fetch("/api/exam-result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(result),
       });
+
+      setResultData(result);
+      setStep("result");
+    } catch (error) {
+      console.error("Submit error:", error);
+      alert("Submission failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
+  };
 
-    const totalScore = mcqMarks + shortMarks;
-    const scholarship = getScholarshipByScore(totalScore);
-
-    const result: ResultData = {
-      ...form,
-      score: totalScore,
-      mcqCorrect,        // Now in scope!
-      mcqMarks,          // Now in scope!
-      shortMarks,        // Now in scope!
-      scholarship: scholarship.name,
-      promoCode: scholarship.code,
-      discountPercent: scholarship.discount,
-      badgeColor: scholarship.badgeColor,
-      message: scholarship.message,
-      shortAnswers: shortResults,
-      timestamp: new Date().toISOString(),
-    };
-
-    await fetch("/api/exam-result", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(result),
-    });
-
-    setResultData(result);
-    setStep("result");
-  } catch (error) {
-    console.error("Submit error:", error);
-    alert("Submission failed. Please try again.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
   const isFormValid = () =>
     form.name.trim() && form.email.includes("@") && form.phone.length >= 10 && form.school;
 
@@ -284,7 +286,7 @@ export default function ExamPage() {
           </div>
         </motion.section>
       )}
-  
+
       {/* ==== EXAM SECTION ==== */}
       {step === "exam" && questions.length > 0 && (
         <section className="min-h-screen bg-gray-900 text-gray-100 py-10 px-4">
