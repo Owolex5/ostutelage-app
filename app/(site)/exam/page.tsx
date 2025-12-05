@@ -33,13 +33,13 @@ interface ShortAnswerResult {
 interface ResultData extends FormData {
   score: number;
   mcqCorrect: number;
-  mcqMarks: number;           // out of 70
-  shortMarks: number;         // out of 30
+  mcqMarks: number;
+  shortMarks: number;
   scholarship: string;
   promoCode: string;
   discountPercent: number;
   badgeColor: string;
-  message: string;            // ← FIXED: this was broken before
+  message: string;
   shortAnswers: ShortAnswerResult[];
   timestamp: string;
 }
@@ -115,8 +115,6 @@ export default function ExamPage() {
     try {
       const mcqQuestions = questions.slice(0, 45) as MCQ[];
       const correctMCQ = mcqQuestions.filter((q, i) => answers[i] === q.correctAnswer).length;
-
-      // Scoring: MCQ = 70, Short = 30
       const mcqMarks = Math.round((correctMCQ / 45) * 70);
       let shortMarks = 0;
       const shortResults: ShortAnswerResult[] = [];
@@ -124,7 +122,6 @@ export default function ExamPage() {
       for (let i = 0; i < 5; i++) {
         const q = questions[45 + i] as ShortAnswer;
         const userAnswer = shortAnswers[i] || "";
-
         let aiScore = 0;
         let feedback = "No answer provided.";
 
@@ -133,11 +130,7 @@ export default function ExamPage() {
             const res = await fetch("/api/grade-short", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                question: q.question,
-                idealAnswer: q.idealAnswer,
-                userAnswer,
-              }),
+              body: JSON.stringify({ question: q.question, idealAnswer: q.idealAnswer, userAnswer }),
             });
             if (!res.ok) throw new Error("AI error");
             const data = await res.json();
@@ -149,20 +142,13 @@ export default function ExamPage() {
           }
         }
 
-        const scaled = Math.round((aiScore / 10) * 6); // max 6 per question → 30 total
+        const scaled = Math.round((aiScore / 10) * 6);
         shortMarks += scaled;
 
-        shortResults.push({
-          question: q.question,
-          userAnswer,
-          aiScore,
-          scaledShortScore: scaled,
-          feedback,
-        });
+        shortResults.push({ question: q.question, userAnswer, aiScore, scaledShortScore: scaled, feedback });
       }
 
       const totalScore = mcqMarks + shortMarks;
-
       const scholarship = getScholarshipByScore(totalScore);
 
       const result: ResultData = {
@@ -199,10 +185,9 @@ export default function ExamPage() {
   const isFormValid = () =>
     form.name.trim() && form.email.includes("@") && form.phone.length >= 10 && form.school;
 
-
   return (
     <>
-      {/* ==== FORM & EXAM SECTIONS — UNCHANGED (same as before) ==== */}
+      {/* ==== FORM ==== */}
       {step === "form" && (
         <motion.section
           initial={{ opacity: 0, y: 30 }}
@@ -221,10 +206,27 @@ export default function ExamPage() {
               </h1>
 
               <div className="space-y-6">
-                <input type="text" placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-5 py-4 rounded-xl bg-white/30 backdrop-blur text-white placeholder-white/70 border border-white/40 focus:outline-none focus:ring-2 focus:ring-white/50" />
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="w-full px-5 py-4 rounded-xl bg-white/30 backdrop-blur text-white placeholder-white/70 border border-white/40 focus:outline-none focus:ring-2 focus:ring-white/50"
                 />
-                <input type="email" placeholder="Email Address" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-5 py-4 rounded-xl bg-white/30 backdrop-blur text-white placeholder-white/70 border border-white/40 focus:outline-none focus:ring-2 focus:ring-white/50" />
-                <input type="tel" placeholder="Phone (+91...)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full px-5 py-4 rounded-xl bg-white/30 backdrop-blur text-white placeholder-white/70 border border-white/40 focus:outline-none focus:ring-2 focus:ring-white/50" />
+                <input
+                  type="email"
+                  placeholder="Email Address"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="w-full px-5 py-4 rounded-xl bg-white/30 backdrop-blur text-white placeholder-white/70 border border-white/40 focus:outline-none focus:ring-2 focus:ring-white/50"
+                />
+                <input
+                  type="tel"
+                  placeholder="Phone (+91...)"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className="w-full px-5 py-4 rounded-xl bg-white/30 backdrop-blur text-white placeholder-white/70 border border-white/40 focus:outline-none focus:ring-2 focus:ring-white/50"
+                />
 
                 <div className="relative">
                   <button
