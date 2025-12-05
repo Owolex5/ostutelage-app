@@ -39,7 +39,6 @@ interface ResultData extends FormData {
   promoCode: string;
   discountPercent: number;
   badgeColor: string;
-  string;
   message: string;
   shortAnswers: ShortAnswerResult[];
   timestamp: string;
@@ -110,7 +109,7 @@ export default function ExamPage() {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    // Declare variables in the correct scope so they can be used in result object
+    // Declare these early so they’re in scope for the result object
     let mcqCorrect = 0;
     let mcqMarks = 0;
     let shortMarks = 0;
@@ -121,7 +120,6 @@ export default function ExamPage() {
       mcqCorrect = mcqQuestions.filter((q, i) => answers[i] === q.correctAnswer).length;
       mcqMarks = Math.round((mcqCorrect / 45) * 70);
 
-      // Grade 5 short answers
       for (let i = 0; i < 5; i++) {
         const q = questions[45 + i] as ShortAnswer;
         const userAnswer = shortAnswers[i] || "";
@@ -414,7 +412,7 @@ export default function ExamPage() {
               className="bg-gradient-to-b from-gray-900 to-black rounded-3xl shadow-2xl overflow-hidden border border-cyan-500/50"
             >
               <div className="bg-gradient-to-r from-cyan-600 via-purple-700 to-pink-700 p-16 text-center">
-                <Trophy className="w-32 h-32 mx-auto mb-8 text-yellow-400 drop-shadow-2xl" />
+                <Trophy className="w-32 h-32 mx-auto mb-8 text-yellow-400 drop-shadow-2xl"  />
                 <h1 className="text-7xl font-black text-white mb-4 drop-shadow-2xl">
                   CONGRATULATIONS {resultData.name.split(" ")[0].toUpperCase()}!
                 </h1>
@@ -447,7 +445,7 @@ export default function ExamPage() {
                   {resultData.promoCode}
                 </div>
                 <p className="text-amber-300 text-2xl mt-10 font-bold">
-                  Use this code → Get <span className="text-4xl">{resultData.discountPercent}% OFF</span> instantly!
+                  Use this code to Get <span className="text-4xl">{resultData.discountPercent}% OFF</span> instantly!
                 </p>
               </div>
 
