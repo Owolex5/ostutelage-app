@@ -3,9 +3,15 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { osTutelageExam, type ExamQuestion, MCQ, ShortAnswer } from "@/data/examData";
-import { schoolsData } from "@/data/schoolsData";          // <-- NEW
-import ResultPDF from "@/components/ResultPDF";
+import { schoolsData } from "@/data/schoolsData";
 import { Loader2, Clock, AlertCircle, Trophy, ChevronDown } from "lucide-react";
+import dynamic from "next/dynamic";
+
+// Dynamic import — fixes jspdf/html2canvas build error on Vercel
+const ResultPDF = dynamic(() => import("@/components/ResultPDF"), {
+  ssr: false,
+  loading: () => <p className="text-center py-8">Generating your result PDF...</p>,
+});
 
 type Step = "form" | "exam" | "result";
 
@@ -13,15 +19,24 @@ interface FormData {
   name: string;
   email: string;
   phone: string;
-  school: string;          // <-- will hold the selected school **title**
+  school: string;
+}
+
+interface ShortAnswerResult {
+  question: string;
+  userAnswer: string;
+  aiScore: number;        // 0–10 from AI
+  scaledShortScore: number; // 0–4 marks
+  feedback: string;
 }
 
 interface ResultData extends FormData {
-  score: number;
-  mcqScore: number;
-  shortScore: number;
+  score: number;          // Total out of 100
+  mcqCorrect: number;     // Correct MCQs out of 45
+  mcqMarks: number;       // MCQ marks out of 80
+  shortMarks: number;     // Short answer total out of 20
   scholarship: string;
-  shortAnswers: any[];
+  shortAnswers: ShortAnswerResult[];
   timestamp: string;
 }
 
@@ -38,9 +53,6 @@ export default function ExamPage() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  /* -------------------------------------------------
-     Load questions (only once when we enter the exam)
-  ------------------------------------------------- */
   useEffect(() => {
     if (step === "exam" && questions.length === 0) {
       setQuestions(osTutelageExam.getQuestions());
@@ -49,9 +61,6 @@ export default function ExamPage() {
     }
   }, [step]);
 
-  /* -------------------------------------------------
-     Timer
-  ------------------------------------------------- */
   useEffect(() => {
     if (step !== "exam" || questions.length === 0) return;
 
@@ -90,9 +99,6 @@ export default function ExamPage() {
     setShortAnswers(newShorts);
   };
 
-  /* -------------------------------------------------
-     Submit + AI grading
-  ------------------------------------------------- */
   const submitExam = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
@@ -100,18 +106,17 @@ export default function ExamPage() {
     try {
       const mcqQuestions = questions.slice(0, 45) as MCQ[];
       const correctMCQ = mcqQuestions.filter((q, i) => answers[i] === q.correctAnswer).length;
-      const mcqScore = Math.round((correctMCQ / 45) * 100);
+      const mcqMarks = Math.round((correctMCQ / 45) * 80); // Out of 80
 
-      let shortScore = 0;
-      const shortResults: any[] = [];
+      let shortMarks = 0;
+      const shortResults: ShortAnswerResult[] = [];
 
       for (let i = 0; i < 5; i++) {
-        const qIdx = 45 + i;
-        const q = questions[qIdx] as ShortAnswer;
+        const q = questions[45 + i] as ShortAnswer;
         const userAnswer = shortAnswers[i] || "";
 
         let aiScore = 0;
-        let feedback = "No answer.";
+        let feedback = "No answer provided.";
 
         if (userAnswer.trim()) {
           try {
@@ -124,21 +129,31 @@ export default function ExamPage() {
                 userAnswer,
               }),
             });
+
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             aiScore = data.score || 0;
-            feedback = data.feedback || "Graded.";
+            feedback = data.feedback || "Graded by AI.";
           } catch (err) {
-            feedback = "AI error.";
+            console.error("AI grading failed:", err);
+            feedback = "AI unavailable — fallback grading used.";
+            aiScore = Math.min(10, Math.ceil(userAnswer.trim().length / 15));
           }
         }
 
-        shortScore += aiScore;
-        shortResults.push({ question: q.question, userAnswer, aiScore, feedback });
+        const scaled = Math.round((aiScore / 10) * 4); // 0–4 marks per question
+        shortMarks += scaled;
+
+        shortResults.push({
+          question: q.question,
+          userAnswer,
+          aiScore,
+          scaledShortScore: scaled,
+          feedback,
+        });
       }
 
-      const avgShort = shortScore / 5;
-      const finalShortPercent = (avgShort / 10) * 100;
-      const totalScore = Math.round((mcqScore * 0.5) + (finalShortPercent * 0.5));
+      const totalScore = mcqMarks + shortMarks;
 
       let scholarship = "";
       if (totalScore >= 92) scholarship = "100% Scholarship";
@@ -150,8 +165,9 @@ export default function ExamPage() {
       const result: ResultData = {
         ...form,
         score: totalScore,
-        mcqScore: correctMCQ,
-        shortScore,
+        mcqCorrect: correctMCQ,
+        mcqMarks,
+        shortMarks,
         scholarship,
         shortAnswers: shortResults,
         timestamp: new Date().toISOString(),
@@ -166,18 +182,19 @@ export default function ExamPage() {
       setResultData(result);
       setStep("result");
     } catch (error) {
-      alert("Failed to submit. Try again.");
+      console.error("Submit error:", error);
+      alert("Submission failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const isFormValid = () =>
-    form.name && form.email.includes("@") && form.phone.length >= 10 && form.school;
+    form.name.trim() &&
+    form.email.includes("@") &&
+    form.phone.length >= 10 &&
+    form.school;
 
-  /* -------------------------------------------------
-     Render
-  ------------------------------------------------- */
   return (
     <>
       {/* ==== FORM ==== */}
@@ -199,38 +216,14 @@ export default function ExamPage() {
               </h1>
 
               <div className="space-y-6">
-                {/* Name */}
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full px-5 py-4 rounded-xl bg-white/30 backdrop-blur text-white placeholder-white/70 border border-white/40 focus:outline-none focus:ring-2 focus:ring-white/50"
-                />
+                <input type="text" placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-5 py-4 rounded-xl bg-white/30 backdrop-blur text-white placeholder-white/70 border border-white/40 focus:outline-none focus:ring-2 focus:ring-white/50" />
+                <input type="email" placeholder="Email Address" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-5 py-4 rounded-xl bg-white/30 backdrop-blur text-white placeholder-white/70 border border-white/40 focus:outline-none focus:ring-2 focus:ring-white/50" />
+                <input type="tel" placeholder="Phone (+91...)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full px-5 py-4 rounded-xl bg-white/30 backdrop-blur text-white placeholder-white/70 border border-white/40 focus:outline-none focus:ring-2 focus:ring-white/50" />
 
-                {/* Email */}
-                <input
-                  type="email"
-                  placeholder="Email Address"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-5 py-4 rounded-xl bg-white/30 backdrop-blur text-white placeholder-white/70 border border-white/40 focus:outline-none focus:ring-2 focus:ring-white/50"
-                />
-
-                {/* Phone */}
-                <input
-                  type="tel"
-                  placeholder="Phone (+91...)"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="w-full px-5 py-4 rounded-xl bg-white/30 backdrop-blur text-white placeholder-white/70 border border-white/40 focus:outline-none focus:ring-2 focus:ring-white/50"
-                />
-
-                {/* SCHOOL DROPDOWN */}
                 <div className="relative">
                   <button
                     type="button"
-                    onClick={() => setDropdownOpen((o) => !o)}
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
                     className="w-full flex items-center justify-between px-5 py-4 rounded-xl bg-white/30 backdrop-blur text-white placeholder-white/70 border border-white/40 focus:outline-none focus:ring-2 focus:ring-white/50"
                   >
                     <span className={form.school ? "text-white" : "text-white/70"}>
@@ -243,7 +236,6 @@ export default function ExamPage() {
                     <motion.ul
                       initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
                       className="absolute left-0 right-0 mt-2 max-h-60 overflow-y-auto bg-white rounded-xl shadow-xl border border-gray-200 z-10"
                     >
                       {schoolsData.map((school) => (
@@ -262,11 +254,10 @@ export default function ExamPage() {
                   )}
                 </div>
 
-                {/* Start button */}
                 <button
                   onClick={() => setStep("exam")}
                   disabled={!isFormValid()}
-                  className="w-full py-4 bg-white text-primary rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-4 bg-white text-primary rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Start Exam
                 </button>
@@ -279,7 +270,6 @@ export default function ExamPage() {
       {/* ==== EXAM ==== */}
       {step === "exam" && questions.length > 0 && (
         <section className="min-h-screen bg-gray-50 py-10 px-4">
-          {/* Timer + Submit */}
           <div className="max-w-6xl mx-auto flex justify-between items-center mb-8">
             <div className="flex items-center gap-3">
               <Clock className="w-7 h-7 text-red-600" />
@@ -288,31 +278,27 @@ export default function ExamPage() {
             <button
               onClick={submitExam}
               disabled={isSubmitting}
-              className="px-8 py-3 bg-primary text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all flex items-center gap-2"
+              className="px-8 py-3 bg-primary text-white rounded-xl font-semibold shadow-lg hover:shadow-xl flex items-center gap-2"
             >
               {isSubmitting && <Loader2 className="w-5 h-5 animate-spin" />}
               Submit Exam
             </button>
           </div>
 
-          {/* Progress */}
           <div className="max-w-6xl mx-auto mb-8">
             <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
               <motion.div
                 className="h-full bg-primary"
                 initial={{ width: 0 }}
-                animate={{
-                  width: `${((45 - answers.filter((a) => a === null).length) / 45) * 100}%`,
-                }}
+                animate={{ width: `${((45 - answers.filter(a => a === null).length) / 45) * 100}%` }}
                 transition={{ duration: 0.5 }}
               />
             </div>
             <p className="text-sm text-gray-600 mt-2 text-center">
-              {45 - answers.filter((a) => a === null).length}/45 MCQs answered
+              {45 - answers.filter(a => a === null).length}/45 MCQs answered
             </p>
           </div>
 
-          {/* Questions */}
           <div className="max-w-6xl mx-auto space-y-10">
             {questions.map((q, i) => (
               <motion.div
@@ -356,7 +342,7 @@ export default function ExamPage() {
                       onChange={(e) => handleShort(i - 45, e.target.value)}
                       maxLength={q.maxChars}
                       rows={4}
-                      className="w-full p-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                      className="w-full p-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary resize-none"
                     />
                     <p className="text-xs text-gray-500 text-right mt-1">
                       {(shortAnswers[i - 45]?.length || 0)}/{q.maxChars}
@@ -367,7 +353,6 @@ export default function ExamPage() {
             ))}
           </div>
 
-          {/* Warning modal */}
           {showWarning && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -401,61 +386,72 @@ export default function ExamPage() {
           animate={{ opacity: 1 }}
           className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50 py-20 px-4"
         >
-    <div className="max-w-4xl mx-auto">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="bg-white rounded-3xl p-10 shadow-2xl text-center"
-      >
-        <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
-        <h1 className="text-4xl font-bold mb-4">Exam Complete!</h1>
-        <div className="text-8xl font-bold text-primary mb-2">{resultData.score}%</div>
-        <p className="text-2xl text-gray-700 mb-8">Total Score</p>
+          <div className="max-w-4xl mx-auto">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-white rounded-3xl p-10 shadow-2xl text-center"
+            >
+              <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
+              <h1 className="text-4xl font-bold mb-4">Exam Complete!</h1>
+              <div className="text-8xl font-bold text-primary mb-2">{resultData.score}%</div>
+              <p className="text-2xl text-gray-700 mb-8">Total Score</p>
 
-        <div
-          className={`inline-block px-8 py-4 rounded-full text-2xl font-bold mb-8 ${
-            resultData.score >= 75 ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
-          }`}
-        >
-          {resultData.scholarship}
-        </div>
+              <div
+                className={`inline-block px-8 py-4 rounded-full text-2xl font-bold mb-8 ${
+                  resultData.score >= 75 ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+                }`}
+              >
+                {resultData.scholarship}
+              </div>
 
-        <div className="grid grid-cols-2 gap-6 mb-10 text-left">
-          <div className="bg-gray-50 p-6 rounded-2xl">
-            <p className="text-sm text-gray-600">MCQ Score</p>
-            <p className="text-3xl font-bold">{resultData.mcqScore}/45</p>
+              <div className="grid grid-cols-2 gap-6 mb-10 text-left">
+                <div className="bg-gray-50 p-6 rounded-2xl">
+                  <p className="text-sm text-gray-600">MCQ Score</p>
+                  <p className="text-3xl font-bold">{resultData.mcqCorrect}/45</p>
+                  <p className="text-lg text-gray-600 mt-1">= {resultData.mcqMarks}/80 marks</p>
+                </div>
+                <div className="bg-gray-50 p-6 rounded-2xl">
+                  <p className="text-sm text-gray-600">Short Answers (AI Graded)</p>
+                  <p className="text-3xl font-bold">{resultData.shortMarks}/20</p>
+                </div>
+              </div>
+
+              {/* Short Answer Breakdown */}
+              <div className="mt-12 max-w-3xl mx-auto text-left">
+                <h3 className="text-2xl font-bold text-center mb-6">Short Answer Details</h3>
+                {resultData.shortAnswers.map((ans, i) => (
+                  <div key={i} className="bg-gray-50 p-5 rounded-2xl mb-4">
+                    <p className="font-semibold text-lg mb-2">Q{i + 1}: {ans.question}</p>
+                    <p className="text-sm text-gray-600 mb-1">
+                      <strong>AI Score:</strong> {ans.aiScore}/10 → <strong>{ans.scaledShortScore}/4 marks</strong>
+                    </p>
+                    <p className="text-sm italic text-gray-700 mb-2">
+                      <strong>Your Answer:</strong> {ans.userAnswer || "No answer"}
+                    </p>
+                    <p className="text-sm text-primary font-medium">{ans.feedback}</p>
+                  </div>
+                ))}
+              </div>
+
+              <ResultPDF data={resultData} />
+
+              {resultData.score >= 48 && (
+                <a
+                  href="https://app.ostutelage.tech/portal/signup.php?promo=2025OS"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 mt-12 px-10 py-4 bg-primary text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
+                >
+                  Apply with Scholarship
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </a>
+              )}
+            </motion.div>
           </div>
-          <div className="bg-gray-50 p-6 rounded-2xl">
-            <p className="text-sm text-gray-600">Short Answer (AI)</p>
-            <p className="text-3xl font-bold">{resultData.shortScore}/50</p>
-          </div>
-        </div>
-
-        <ResultPDF data={resultData} />
-
-        {/* Show “Apply with Scholarship” only if score >= 48 */}
-        {resultData.score >= 48 && (
-          <a
-            href={`https://app.ostutelage.tech/portal/signup.php?promo=2025OS`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 mt-10 px-10 py-4 bg-primary text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
-          >
-            Apply with Scholarship
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 8l4 4m0 0l-4 4m4-4H3"
-              />
-            </svg>
-          </a>
-        )}
-      </motion.div>
-    </div>
-  </motion.section>
-
+        </motion.section>
       )}
     </>
   );
