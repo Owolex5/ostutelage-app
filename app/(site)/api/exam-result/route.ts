@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
     // ==================== STUDENT EMAIL (FINAL BEAUTIFUL VERSION) ====================
     await transporter.sendMail({
-      from: `"OsTutelage Academy" <info@ostutelage.tech>`,
+      from: `"OsTutelage Academy" <hello@ostutelage.tech>`,
       to: email,
       subject: `Congrats ${name.split(" ")[0]}! You Won ${finalDiscount}% Scholarship (${finalPromoCode})`,
       html: `
@@ -155,7 +155,7 @@ export async function POST(request: Request) {
               <p style="margin:0;">
                 India’s fastest-growing tech mentorship program<br>
                 <a href="https://ostutelage.tech" style="color:#60a5fa;">ostutelage.tech</a> • 
-                <a href="mailto:info@ostutelage.tech" style="color:#60a5fa;">info@ostutelage.tech</a>
+                <a href="mailto:hello@ostutelage.tech" style="color:#60a5fa;">hello@ostutelage.tech</a>
               </p>
             </div>
           </div>
