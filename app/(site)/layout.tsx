@@ -20,7 +20,8 @@ export default function RootLayout({
   const pathname = usePathname();
 
   // Hide layout elements on certain routes (like /exam)
-  const noLayout = !!pathname && (pathname.startsWith("/exam") || pathname.startsWith("/assessment"));
+  const noLayout =
+    pathname.startsWith("/exam") || pathname.startsWith("/assessment");
 
   return (
     <html lang="en" suppressHydrationWarning>
