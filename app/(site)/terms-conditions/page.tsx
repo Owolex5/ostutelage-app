@@ -158,7 +158,7 @@ export default function TermsConditions() {
                   <p className="text-sm text-gray-600 dark:text-gray-400">Monday - Friday: 9AM - 6PM WAT</p>
                 </div>
                 <a
-                  href="mailto:hello@ostutelage.com"
+                  href="mailto:info@ostutelage.com"
                   className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
                 >
                   Get In Touch
