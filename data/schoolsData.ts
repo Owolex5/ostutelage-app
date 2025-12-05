@@ -34,7 +34,7 @@ export const schoolsData: School[] = [
     image: "/images/schools/osoftware.jpg",
     details: {
       overview:
-        "Learn modern programming languages, frontend frameworks, PHP/Laravel, and blockchain technologies while working on real-world projects. Graduates will deploy scalable applications, create engaging user interfaces, collaborate in agile teams, and excel in software, frontend, PHP/Laravel, and Web3 development.",
+        "Learn modern programming languages, frontend frameworks, backend engineering, PHP/Laravel, mobile development, DevOps, and blockchain technologies. Build real software products through hands-on projects, code reviews, and expert-led mentorship.",
       careerOutcomes: [
         "Fullstack Engineer",
         "Backend Developer",
@@ -43,21 +43,26 @@ export const schoolsData: School[] = [
         "Web3 Developer",
         "Cloud/DevOps Engineer",
         "PHP/Laravel Developer",
+        "Software Engineer",
       ],
       tools: [
-        "JavaScript/TypeScript",
+        "JavaScript & TypeScript",
         "React & Next.js",
         "Vue.js & Angular",
         "PHP & Laravel",
+        "Node.js & Express",
         "Solidity & Web3.js",
         "PostgreSQL & MongoDB",
         "Docker & Kubernetes",
-        "AWS & Firebase",
+        "Git & GitHub",
+        "AWS, Firebase & DigitalOcean",
       ],
       learningStyle: [
-        "Live virtual classes",
-        "Hands-on projects",
+        "Live virtual and physical classes",
+        "Hands-on coding projects",
+        "Weekly code challenges",
         "One-on-one mentorship",
+        "Pair programming sessions",
         "Capstone project reviewed by industry experts",
       ],
       courses: [
@@ -65,56 +70,57 @@ export const schoolsData: School[] = [
           name: "Fullstack Web Development",
           duration: "10 months",
           outcome:
-            "Build scalable apps using React, Node.js, PHP/Laravel, and cloud platforms for web development.",
-          fee: "₦650,000",
-        },
-        {
-          name: "Backend Engineering",
-          duration: "5 months",
-          outcome:
-            "Master server-side engineering, database design, and scalability with Node.js, PHP/Laravel, and databases.",
-          fee: "₦350,000",
-        },
-        {
-          name: "Frontend Development",
-          duration: "6 months",
-          outcome:
-            "Create responsive and interactive user interfaces with React, Vue.js, and modern frontend tools.",
-          fee: "₦400,000",
-        },
-        {
-          name: "Mobile Development",
-          duration: "7 months",
-          outcome:
-            "Create cross-platform mobile apps with Flutter and React Native, integrated with APIs.",
+            "Build scalable web and mobile applications using frontend and backend technologies, including React, Node.js, PHP/Laravel, and cloud platforms.",
           fee: "₦450,000",
         },
         {
-          name: "Web3 Development",
+          name: "Backend Engineering (Node.js / PHP-Laravel)",
           duration: "6 months",
           outcome:
-            "Develop decentralized applications using Solidity, Web3.js, and blockchain technologies.",
-          fee: "₦400,000",
+            "Master server-side development, APIs, databases, authentication, and deployment workflows.",
+          fee: "₦250,000",
+        },
+        {
+          name: "Frontend Development (React / Vue / Next.js)",
+          duration: "6 months",
+          outcome:
+            "Create responsive and interactive user interfaces with modern frameworks and best practices.",
+          fee: "₦240,000",
+        },
+        {
+          name: "Mobile App Development (React Native / Flutter)",
+          duration: "6 months",
+          outcome:
+            "Build cross-platform mobile applications integrated with APIs for Android and iOS.",
+          fee: "₦320,000",
+        },
+        {
+          name: "Blockchain & Web3 Development",
+          duration: "6 months",
+          outcome:
+            "Develop decentralized apps (dApps) and smart contracts using Solidity and Web3 technologies.",
+          fee: "₦350,000",
         },
         {
           name: "PHP/Laravel Development",
           duration: "5 months",
           outcome:
-            "Build robust, scalable web applications using PHP and the Laravel framework.",
-          fee: "₦400,000",
+            "Build robust, scalable web applications using PHP and Laravel framework.",
+          fee: "₦225,000",
         },
       ],
       shortCourses: [
         {
-          name: "Intro to JavaScript",
+          name: "JavaScript & TypeScript Fundamentals",
           duration: "6 weeks",
-          outcome: "Learn the fundamentals of coding and programming logic with JavaScript.",
+          outcome:
+            "Learn the fundamentals of programming and modern JavaScript/TypeScript coding practices.",
           fee: "₦150,000",
         },
         {
           name: "APIs & Databases",
           duration: "6 weeks",
-          outcome: "Understand how apps communicate with APIs and manage data efficiently.",
+          outcome: "Understand app communication with APIs and efficient database management.",
           fee: "₦150,000",
         },
         {
@@ -124,10 +130,16 @@ export const schoolsData: School[] = [
           fee: "₦175,000",
         },
         {
-          name: "Intro to PHP/Laravel",
+          name: "PHP & Laravel Mastery",
+          duration: "8 weeks",
+          outcome: "Become proficient in building backend systems using Laravel.",
+          fee: "₦145,000",
+        },
+        {
+          name: "DevOps Essentials (Docker, Kubernetes, CI/CD)",
           duration: "6 weeks",
-          outcome: "Learn the basics of PHP and Laravel for building dynamic web applications.",
-          fee: "₦160,000",
+          outcome: "Learn containerization, orchestration, and automated deployment pipelines.",
+          fee: "₦200,000",
         },
         {
           name: "Intro to Frontend Development",
@@ -136,14 +148,15 @@ export const schoolsData: School[] = [
           fee: "₦160,000",
         },
       ],
-      fees: "₦150,000 – ₦700,000 depending on course",
+      fees: "₦150,000 – ₦450,000 depending on course",
       whyChoose: [
-        "Industry-relevant curriculum with frontend, PHP/Laravel, and Web3 focus",
-        "Portfolio-based learning with real projects",
-        "Global job placement support",
-        "Flexible payment options and scholarships",
+        "Learn directly from experienced software engineers",
+        "Project-based curriculum aligned with real industry needs",
+        "Access to engineering mentorship and career support",
+        "Build a strong portfolio with real-world applications",
+        "Globally relevant tools, stacks, and certifications",
       ],
-      level: "Intermediate", // Added level
+      level: "Intermediate",
     },
   },
   {
@@ -182,21 +195,21 @@ export const schoolsData: School[] = [
           duration: "6 months",
           outcome:
             "Master Python, statistics, and visualization for actionable business insights.",
-          fee: "₦400,000",
+          fee: "₦280,000",
         },
         {
           name: "Machine Learning & AI",
           duration: "6 months",
           outcome:
             "Build intelligent systems with deep learning and neural networks.",
-          fee: "₦500,000",
+          fee: "₦350,000",
         },
         {
           name: "Business Analytics",
           duration: "5 months",
           outcome:
             "Use data-driven insights to support organizational strategy and decisions.",
-          fee: "₦400,000",
+          fee: "₦300,000",
         },
       ],
       shortCourses: [
@@ -213,7 +226,7 @@ export const schoolsData: School[] = [
           fee: "₦120,000",
         },
       ],
-      fees: "₦80,000 – ₦500,000 depending on course",
+      fees: "₦80,000 – ₦450,000 depending on course",
       whyChoose: [
         "Hands-on practice with real industry datasets",
         "Cutting-edge AI and machine learning curriculum",
@@ -258,21 +271,21 @@ export const schoolsData: School[] = [
           duration: "5 months",
           outcome:
             "Master penetration testing and vulnerability assessments for modern apps.",
-          fee: "₦450,000",
+          fee: "₦350,000",
         },
         {
           name: "Cybersecurity & Networking",
           duration: "6 months",
           outcome:
             "Learn secure networking, firewalls, and cloud security to protect infrastructures.",
-          fee: "₦600,000",
+          fee: "₦500,000",
         },
         {
           name: "Digital Forensics",
           duration: "4 months",
           outcome:
             "Specialize in evidence collection, malware analysis, and incident response.",
-          fee: "₦300,000",
+          fee: "₦230,000",
         },
       ],
       shortCourses: [
@@ -286,7 +299,7 @@ export const schoolsData: School[] = [
           name: "Incident Response",
           duration: "6 weeks",
           outcome: "Learn to handle and mitigate cyberattacks effectively.",
-          fee: "₦150,000",
+          fee: "₦135,000",
         },
       ],
       fees: "₦120,000 – ₦800,000 depending on course",
@@ -334,21 +347,21 @@ export const schoolsData: School[] = [
           duration: "6 months",
           outcome:
             "Learn wireframing, prototyping, and user research for digital experiences.",
-          fee: "₦300,000",
+          fee: "₦275,000",
         },
         {
           name: "Product Design",
           duration: "5 months",
           outcome:
             "Design products from ideation to delivery, focusing on usability and business goals.",
-          fee: "₦350,000",
+          fee: "₦250,000",
         },
         {
           name: "Graphics Design",
           duration: "3 months",
           outcome:
             "Develop visual communication skills with Adobe tools and branding principles.",
-          fee: "₦250,000",
+          fee: "₦200,000",
         },
       ],
       shortCourses: [
@@ -356,16 +369,16 @@ export const schoolsData: School[] = [
           name: "Figma Essentials",
           duration: "4 weeks",
           outcome: "Design and prototype user interfaces with Figma.",
-          fee: "₦120,000",
+          fee: "₦95,000",
         },
         {
           name: "Adobe Illustrator Basics",
           duration: "5 weeks",
           outcome: "Learn vector graphics for branding and visuals.",
-          fee: "₦120,000",
+          fee: "₦90,000",
         },
       ],
-      fees: "₦120,000 – ₦400,000 depending on course",
+      fees: "₦90,000 – ₦400,000 depending on course",
       whyChoose: [
         "Practical, hands-on projects",
         "Portfolio that stands out to employers",
@@ -410,21 +423,21 @@ export const schoolsData: School[] = [
           duration: "6 months",
           outcome:
             "Master agile methodologies and project execution for leading teams.",
-          fee: "₦350,000",
+          fee: "₦250,000",
         },
         {
           name: "Digital Marketing",
           duration: "3 months",
           outcome:
             "Learn SEO, paid ads, social media, and content marketing strategies.",
-          fee: "₦200,000",
+          fee: "₦150,000",
         },
         {
           name: "Freelancing Mastery",
           duration: "3 months",
           outcome:
             "Package skills, win clients, and manage freelance projects successfully.",
-          fee: "₦250,000",
+          fee: "₦200,000",
         },
       ],
       shortCourses: [
@@ -442,7 +455,7 @@ export const schoolsData: School[] = [
           fee: "₦120,000",
         },
       ],
-      fees: "₦120,000 – ₦500,000 depending on course",
+      fees: "₦120,000 – ₦300,000 depending on course",
       whyChoose: [
         "Learn from industry practitioners",
         "Career-focused curriculum for the workplace",

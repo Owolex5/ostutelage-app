@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import { Inter } from "next/font/google";
 import "../globals.css";
 import ToasterContext from "../context/ToastContext";
+import { usePathname } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,6 +17,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
+  // Hide layout elements on certain routes (like /exam)
+  const noLayout =
+    pathname.startsWith("/exam") || pathname.startsWith("/assessment");
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`dark:bg-black ${inter.className}`}>
@@ -25,13 +32,18 @@ export default function RootLayout({
           defaultTheme="light"
         >
           <Lines />
-          <Header />
+
+          {/* Only show header/footer if not on exam route */}
+          {!noLayout && <Header />}
           <ToasterContext />
+
           {children}
-          <Footer />
+
+          {!noLayout && <Footer />}
           <ScrollToTop />
         </ThemeProvider>
       </body>
     </html>
   );
 }
+ 
