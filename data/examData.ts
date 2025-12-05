@@ -21,9 +21,14 @@ export interface ShortAnswer extends BaseQuestion {
 
 export type ExamQuestion = MCQ | ShortAnswer;
 
-// ==================== ALL QUESTIONS (95 MCQs + 17 SHORTS) ====================
-const allQuestions: ExamQuestion[] = [
-  // YOUR 95 MCQs — keep exactly as you have them (I'm showing just a few for reference)
+
+
+// === FULL 100-QUESTION POOL (95 MCQ + 17 SHORT) ===
+const baseQuestions: ExamQuestion[] = [
+
+  // ==============================================================
+  // SECTION 1: COMPUTER & DIGITAL LITERACY (25 MCQs)
+  // ==============================================================
   {
     type: "mcq",
     section: "Computer & Digital Literacy",
@@ -899,41 +904,46 @@ const allQuestions: ExamQuestion[] = [
   // ==============================================================
   // SECTION 6: SHORT-ANSWER CONCEPT QUESTIONS (5 OBJECTS)
   // ==============================================================
-    {
+  {
     type: "short",
     section: "Short-Answer Concept Questions",
     question: "In one sentence, explain why Git is essential in software development.",
     placeholder: "Type your answer (1 sentence)...",
     maxChars: 150,
     idealAnswer: "Git tracks changes, enables team collaboration, prevents data loss, and allows safe experimentation with code.",
-    scoringGuide: ["Version history", "Collaboration", "Safety", "Clarity"]
+    scoringGuide: [
+      "Mentions version history",
+      "Mentions collaboration",
+      "Mentions rollback/safety",
+      "Clear and concise"
+    ]
   },
   {
     type: "short",
     section: "Short-Answer Concept Questions",
     question: "What is the main difference between HTTP and HTTPS?",
-    placeholder: "Be precise...",
+    placeholder: " ",
     maxChars: 100,
     idealAnswer: "HTTPS encrypts data using SSL/TLS for security, while HTTP sends data in plain text.",
-    scoringGuide: ["Encryption", "SSL/TLS", "Security"]
+    scoringGuide: ["Mentions encryption", "Mentions SSL/TLS", "Contrasts with HTTP"]
   },
   {
     type: "short",
     section: "Short-Answer Concept Questions",
     question: "Why is user experience (UX) more important than just visual design?",
-    placeholder: "Explain clearly...",
+    placeholder: "tell us ",
     maxChars: 180,
-    idealAnswer: "UX ensures users can achieve goals easily and efficiently, while visual design alone doesn't guarantee functionality.",
-    scoringGuide: ["Usability", "User goals", "Functionality"]
+    idealAnswer: "UX ensures users can achieve goals easily and efficiently, while visual design alone doesn't guarantee functionality or satisfaction.",
+    scoringGuide: ["Mentions usability", "Mentions user goals", "Contrasts with aesthetics"]
   },
   {
     type: "short",
     section: "Short-Answer Concept Questions",
     question: "Explain 'compound interest' with a simple example.",
-    placeholder: "Use numbers...",
+    placeholder: " ",
     maxChars: 200,
     idealAnswer: "Interest earned on both principal and previous interest. Example: ₹100 at 10% for 2 years → Year 1: ₹10, Year 2: ₹11 → Total ₹121.",
-    scoringGuide: ["Correct definition", "Example", "Growth shown"]
+    scoringGuide: ["Defines correctly", "Gives numerical example", "Shows growth"]
   },
   {
     type: "short",
@@ -942,144 +952,157 @@ const allQuestions: ExamQuestion[] = [
     placeholder: "List 2–3 reasons...",
     maxChars: 150,
     idealAnswer: "To protect against hardware failure, ransomware, accidental deletion, or theft — ensuring data recovery.",
-    scoringGuide: ["Data loss risks", "Recovery", "Real threats"]
+    scoringGuide: ["Mentions data loss risks", "Mentions recovery", "Practical reasons"]
   },
-  {
-    type: "short",
-    section: "Short-Answer Concept Questions",
-    question: "What is the main purpose of an API in software development?",
-    placeholder: "One clear sentence...",
-    maxChars: 140,
-    idealAnswer: "An API allows different software systems to communicate and share data or functionality securely and efficiently.",
-    scoringGuide: ["Communication", "Data/function sharing", "Clarity"]
-  },
-  {
-    type: "short",
-    section: "Short-Answer Concept Questions",
-    question: "Explain the difference between the internet and the World Wide Web (www).",
-    placeholder: "Keep it simple...",
-    maxChars: 160,
-    idealAnswer: "The internet is the global network of computers; the WWW is a service on the internet for accessing websites via browsers.",
-    scoringGuide: ["Network vs service", "Clear distinction", "Simple"]
-  },
-  {
-    type: "short",
-    section: "Short-Answer Concept Questions",
-    question: "Why do programmers love the DRY ('Don't Repeat Yourself')?",
-    placeholder: "One sentence...",
-    maxChars: 150,
-    idealAnswer: "DRY reduces code duplication, making it easier to maintain, debug, and scale — saving time and reducing bugs.",
-    scoringGuide: ["No duplication", "Maintenance", "Error reduction"]
-  },
-  {
-    type: "short",
-    section: "Short-Answer Concept Questions",
-    question: "What is 'cloud computing' in simple terms?",
-    placeholder: "Explain like to a friend...",
-    maxChars: 140,
-    idealAnswer: "Using remote servers on the internet to store, manage, and process data instead of your own computer.",
-    scoringGuide: ["Remote servers", "Storage/processing", "Simple"]
-  },
-  {
-    type: "short",
-    section: "Short-Answer Concept Questions",
-    question: "Why is 'responsive design' important for websites?",
-    placeholder: "Short & clear...",
-    maxChars: 130,
-    idealAnswer: "It ensures websites work well and look great on all devices — phones, tablets, and desktops.",
-    scoringGuide: ["All devices", "Usability + looks", "Core purpose"]
-  },
-  {
-    type: "short",
-    section: "Short-Answer Concept Questions",
-    question: "What does 'Open Source' mean and why is it powerful?",
-    placeholder: "Be concise...",
-    maxChars: 180,
-    idealAnswer: "Open source means the code is public and anyone can view, use, modify, or share it — driving rapid innovation through global collaboration.",
-    scoringGuide: ["Public code", "Modify/share", "Collaboration"]
-  },
-  {
-    type: "short",
-    section: "Short-Answer Concept Questions",
-    question: "Explain 'encryption' using a real-life analogy.",
-    placeholder: "Be creative!",
-    maxChars: 200,
-    idealAnswer: "Encryption is like sending a letter in a locked box — only someone with the right key can open and read it.",
-    scoringGuide: ["Strong analogy", "Key concept", "Protection"]
-  },
-  {
-    type: "short",
-    section: "Short-Answer Concept Questions",
-    question: "Why is reading error messages a superpower in coding?",
-    placeholder: "One sentence...",
-    maxChars: 160,
-    idealAnswer: "Error messages tell you exactly what went wrong and where, helping you fix bugs faster and learn from mistakes.",
-    scoringGuide: ["Diagnosis", "Speed", "Learning"]
-  },
-  {
-    type: "short",
-    section: "Short-Answer Concept Questions",
-    question: "What is artificial intelligence (AI) in one simple sentence?",
-    placeholder: "No jargon...",
-    maxChars: 120,
-    idealAnswer: "AI is when computers learn to do tasks that normally require human intelligence, like understanding speech or recognizing faces.",
-    scoringGuide: ["Human-like tasks", "Learning", "Simple"]
-  },
-  {
-    type: "short",
-    section: "Short-Answer Concept Questions",
-    question: "Why do companies care so much about data privacy today?",
-    placeholder: "2–3 key reasons...",
-    maxChars: 180,
-    idealAnswer: "Due to rising cyberattacks, strict laws like GDPR, and user trust — bad privacy can mean fines, lawsuits, and lost customers.",
-    scoringGuide: ["Security", "Laws", "Trust"]
-  },
-  {
-    type: "short",
-    section: "Short-Answer Concept Questions",
-    question: "What is a 'pull request' on GitHub and why is it useful?",
-    placeholder: "Keep it simple...",
-    maxChars: 160,
-    idealAnswer: "A pull request lets you propose code changes and ask teammates to review them before merging — ensuring quality and teamwork.",
-    scoringGuide: ["Review", "Collaboration", "Quality"]
-  },
-  {
-    type: "short",
-    section: "Short-Answer Concept Questions",
-    question: "Why is 'financial literacy' a life skill, not just a school subject?",
-    placeholder: "Be honest...",
-    maxChars: 180,
-    idealAnswer: "It helps you make smart money decisions, avoid debt, invest wisely, and build long-term financial freedom.",
-    scoringGuide: ["Decision-making", "Independence", "Long-term"]
-  }
+  // Add these 12 new short-answer questions
+{
+  type: "short",
+  section: "Short-Answer Concept Questions",
+  question: "What is the main purpose of an API in software development?",
+  placeholder: "In one sentence...",
+  maxChars: 140,
+  idealAnswer: "An API allows different software systems to communicate and share data or functionality securely and efficiently.",
+  scoringGuide: ["Mentions communication", "Mentions data/function sharing", "Clear purpose"]
+},
+{
+  type: "short",
+  section: "Short-Answer Concept Questions",
+  question: "Explain the difference between 'www' and the internet.",
+  placeholder: "Keep it simple...",
+  maxChars: 160,
+  idealAnswer: "The internet is the global network of connected computers; WWW is a service on the internet that lets you access websites via browsers.",
+  scoringGuide: ["Correctly distinguishes", "Mentions network vs service", "Clear analogy"]
+},
+{
+  type: "short",
+  section: "Short-Answer Concept Questions",
+  question: "Why do programmers prefer 'Don't Repeat Yourself' (DRY) principle?",
+  placeholder: "One sentence...",
+  maxChars: 150,
+  idealAnswer: "DRY reduces duplication, makes code easier to maintain, debug, and update — saving time and reducing errors.",
+  scoringGuide: ["Mentions maintenance", "Mentions error reduction", "Practical benefit"]
+},
+{
+  type: "short",
+  section: "Short-Answer Concept Questions",
+  question: "What is 'cloud computing' in simple terms?",
+  placeholder: "Explain like to a friend...",
+  maxChars: 140,
+  idealAnswer: "Using remote servers on the internet to store, manage, and process data instead of a local computer or server.",
+  scoringGuide: ["Mentions remote servers", "Mentions storage/processing", "Avoids jargon"]
+},
+{
+  type: "short",
+  section: "Short-Answer Concept Questions",
+  question: "Why is 'responsive design' important for websites?",
+  placeholder: "In one sentence...",
+  maxChars: 130,
+  idealAnswer: "It ensures a website works well and looks good on all devices — mobile, tablet, and desktop.",
+  scoringGuide: ["Mentions multiple devices", "Mentions usability/aesthetics", "Core purpose"]
+},
+{
+  type: "short",
+  section: "Short-Answer Concept Questions",
+  question: "What does 'Open Source' mean and why is it powerful?",
+  placeholder: "",
+  maxChars: 180,
+  idealAnswer: "Open source software has publicly accessible code that anyone can use, modify, and distribute — driving innovation through collaboration.",
+  scoringGuide: ["Defines correctly", "Mentions modification/sharing", "Mentions benefit"]
+},
+{
+  type: "short",
+  section: "Short-Answer Concept Questions",
+  question: "Explain 'encryption' using a real-life analogy.",
+  placeholder: "Be creative...",
+  maxChars: 200,
+  idealAnswer: "Encryption is like putting a message in a locked box — only someone with the correct key can open and read it, even if intercepted.",
+  scoringGuide: ["Clear analogy", "Mentions protection", "Mentions key requirement"]
+},
+{
+  type: "short",
+  section: "Short-Answer Concept Questions",
+  question: "Why is learning to 'read error messages' a superpower in coding?",
+  placeholder: "One sentence...",
+  maxChars: 160,
+  idealAnswer: "Error messages tell you exactly what went wrong and where — helping you fix bugs faster and learn from mistakes.",
+  scoringGuide: ["Mentions diagnosis", "Mentions speed/learning", "Practical insight"]
+},
+{
+  type: "short",
+  section: "Short-Answer Concept Questions",
+  question: "What is 'artificial intelligence' in one simple sentence?",
+  placeholder: "No jargon please...",
+  maxChars: 120,
+  idealAnswer: "AI is when computers are trained to perform tasks that normally require human intelligence, like recognizing images or understanding language.",
+  scoringGuide: ["Human-like tasks", "Mentions learning/training", "Accessible explanation"]
+},
+{
+  type: "short",
+  section: "Short-Answer Concept Questions",
+  question: "Why do companies care about 'data privacy' now more than ever?",
+  placeholder: "2–3 key reasons...",
+  maxChars: 180,
+  idealAnswer: "Due to rising cyber attacks, strict laws (like GDPR), and user trust — mishandling data can lead to fines, lawsuits, and loss of customers.",
+  scoringGuide: ["Mentions security", "Mentions laws", "Mentions trust/reputation"]
+},
+{
+  type: "short",
+  section: "Short-Answer Concept Questions",
+  question: "What is a 'pull request' in GitHub and why is it useful?",
+  placeholder: "Keep it simple...",
+  maxChars: 160,
+  idealAnswer: "A pull request is a way to propose code changes and ask teammates to review and merge them — ensuring quality and collaboration.",
+  scoringGuide: ["Mentions review", "Mentions collaboration", "Mentions quality control"]
+},
+{
+  type: "short",
+  section: "Short-Answer Concept Questions",
+  question: "In one sentence: Why is 'financial literacy' a life skill, not just a school subject?",
+  placeholder: "Be honest...",
+  maxChars: 180,
+  idealAnswer: "It empowers you to make smart money decisions, avoid debt traps, invest wisely, and achieve long-term freedom and security.",
+  scoringGuide: ["Mentions decision-making", "Mentions independence", "Real-life impact"]
+}
 ];
 
-// ==================== SEPARATE ARRAYS ====================
-const mcqs = allQuestions.filter((q): q is MCQ => q.type === "mcq");
-const shorts = allQuestions.filter((q): q is ShortAnswer => q.type === "short");
+// === EXPORT: 45 RANDOM MCQs + ALL 5 SHORT ANSWERS ===
+// === SEPARATE MCQs & SHORTS ===
+const mcqs = baseQuestions.filter((q): q is MCQ => q.type === "mcq");
+const shorts = baseQuestions.filter((q): q is ShortAnswer => q.type === "short");
 
-// ==================== RANDOMIZER ====================
-const getRandomItems = <T,>(array: T[], count: number): T[] => {
-  const shuffled = [...array].sort(() => Math.random() - 0.5);
+// === RANDOM 45 MCQs ===
+const getRandomMCQs = (count: number): MCQ[] => {
+  const shuffled = [...mcqs].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
 };
 
-// ==================== FINAL EXAM EXPORT ====================
+// === EXPORT EXAM OBJECT ===
+// === EXPORT EXAM OBJECT ===
 export const osTutelageExam = {
-  title: "OsTutelage Scholarship Exam 2025",
+  title: "OsTutelage General Aptitude Exam (OGAE)",
   duration: 30,
-  totalQuestions: 50,
-  mcqCount: 45,
-  shortCount: 5,
+  totalPool: 112, // 95 MCQ + 17 Short = 112
+  questionsPerAttempt: 50,
   instructions: [
-    "45 randomly selected MCQs from 95 questions",
-    "5 randomly selected short-answer questions from 17",
-    "No negative marking • Total time: 30 minutes",
-    "Short answers are AI-graded for depth & clarity",
+    "45 MCQs randomly selected from 95",
+    "5 Short-answer questions randomly selected from 17",
+    "Short answers: Be clear, concise, and original (max 150–200 chars)",
+    "No negative marking • Time: 30 minutes",
+    "Short answers graded by AI"
   ],
-  getQuestions: (): ExamQuestion[] => {
-    const randomMCQs = getRandomItems(mcqs, 45);
-    const randomShorts = getRandomItems(shorts, 5);
-    return [...randomMCQs, ...randomShorts];
+
+  getRandomMCQs: (count: number = 45): MCQ[] => {
+    const shuffled = [...mcqs].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
   },
+
+  getRandomShorts: (count: number = 5): ShortAnswer[] => {
+    const shuffled = [...shorts].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+  },
+
+  getQuestions: (): ExamQuestion[] => [
+    ...osTutelageExam.getRandomMCQs(45),
+    ...osTutelageExam.getRandomShorts(5)
+  ]
 };
