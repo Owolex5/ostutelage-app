@@ -1004,7 +1004,6 @@ const baseQuestions: ExamQuestion[] = [
     scoringGuide: ["Public code", "Modify/share", "Collaboration"]
   },
   {
-    {
     type: "short",
     section: "Short-Answer Concept Questions",
     question: "Explain 'encryption' using a real-life analogy.",
@@ -1060,11 +1059,11 @@ const baseQuestions: ExamQuestion[] = [
   }
 ];
 
-// ==================== SEPARATE ARRAYS (IMPORTANT!) ====================
+// ==================== SEPARATE ARRAYS ====================
 const mcqs = allQuestions.filter((q): q is MCQ => q.type === "mcq");
 const shorts = allQuestions.filter((q): q is ShortAnswer => q.type === "short");
 
-// ==================== RANDOMIZER FUNCTION ====================
+// ==================== RANDOMIZER ====================
 const getRandomItems = <T,>(array: T[], count: number): T[] => {
   const shuffled = [...array].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, count);
@@ -1085,7 +1084,7 @@ export const osTutelageExam = {
   ],
   getQuestions: (): ExamQuestion[] => {
     const randomMCQs = getRandomItems(mcqs, 45);
-    const randomShorts = getRandomItems(shorts, 5); // ← NOW TRULY RANDOM!
+    const randomShorts = getRandomItems(shorts, 5); // NOW TRULY RANDOM!
     return [...randomMCQs, ...randomShorts];
   },
 };
