@@ -142,9 +142,9 @@ export default function ExamPage() {
 
       let scholarship = "";
       if (totalScore >= 92) scholarship = "100% Scholarship";
-      else if (totalScore >= 85) scholarship = "60% Scholarship";
-      else if (totalScore >= 75) scholarship = "40% Scholarship";
-      else if (totalScore >= 65) scholarship = "25% Scholarship";
+      else if (totalScore >= 85) scholarship = "90% Scholarship";
+      else if (totalScore >= 75) scholarship = "78% Scholarship";
+      else if (totalScore >= 48) scholarship = "45% Scholarship";
       else scholarship = "Try Again";
 
       const result: ResultData = {
@@ -401,57 +401,61 @@ export default function ExamPage() {
           animate={{ opacity: 1 }}
           className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50 py-20 px-4"
         >
-          <div className="max-w-4xl mx-auto">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="bg-white rounded-3xl p-10 shadow-2xl text-center"
-            >
-              <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
-              <h1 className="text-4xl font-bold mb-4">Exam Complete!</h1>
-              <div className="text-8xl font-bold text-primary mb-2">{resultData.score}%</div>
-              <p className="text-2xl text-gray-700 mb-8">Total Score</p>
+    <div className="max-w-4xl mx-auto">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="bg-white rounded-3xl p-10 shadow-2xl text-center"
+      >
+        <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
+        <h1 className="text-4xl font-bold mb-4">Exam Complete!</h1>
+        <div className="text-8xl font-bold text-primary mb-2">{resultData.score}%</div>
+        <p className="text-2xl text-gray-700 mb-8">Total Score</p>
 
-              <div
-                className={`inline-block px-8 py-4 rounded-full text-2xl font-bold mb-8 ${
-                  resultData.score >= 75 ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
-                }`}
-              >
-                {resultData.scholarship}
-              </div>
+        <div
+          className={`inline-block px-8 py-4 rounded-full text-2xl font-bold mb-8 ${
+            resultData.score >= 75 ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+          }`}
+        >
+          {resultData.scholarship}
+        </div>
 
-              <div className="grid grid-cols-2 gap-6 mb-10 text-left">
-                <div className="bg-gray-50 p-6 rounded-2xl">
-                  <p className="text-sm text-gray-600">MCQ Score</p>
-                  <p className="text-3xl font-bold">{resultData.mcqScore}/45</p>
-                </div>
-                <div className="bg-gray-50 p-6 rounded-2xl">
-                  <p className="text-sm text-gray-600">Short Answer (AI)</p>
-                  <p className="text-3xl font-bold">{resultData.shortScore}/50</p>
-                </div>
-              </div>
-
-              <ResultPDF data={resultData} />
-
-              <a
-                href="https://app.ostutelage.tech/portal/signup.php"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 mt-10 px-10 py-4 bg-primary text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
-              >
-                Apply with Scholarship
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
-                </svg>
-              </a>
-            </motion.div>
+        <div className="grid grid-cols-2 gap-6 mb-10 text-left">
+          <div className="bg-gray-50 p-6 rounded-2xl">
+            <p className="text-sm text-gray-600">MCQ Score</p>
+            <p className="text-3xl font-bold">{resultData.mcqScore}/45</p>
           </div>
-        </motion.section>
+          <div className="bg-gray-50 p-6 rounded-2xl">
+            <p className="text-sm text-gray-600">Short Answer (AI)</p>
+            <p className="text-3xl font-bold">{resultData.shortScore}/50</p>
+          </div>
+        </div>
+
+        <ResultPDF data={resultData} />
+
+        {/* Show “Apply with Scholarship” only if score >= 48 */}
+        {resultData.score >= 48 && (
+          <a
+            href={`https://app.ostutelage.tech/portal/signup.php?promo=2025OS`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-3 mt-10 px-10 py-4 bg-primary text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
+          >
+            Apply with Scholarship
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 8l4 4m0 0l-4 4m4-4H3"
+              />
+            </svg>
+          </a>
+        )}
+      </motion.div>
+    </div>
+  </motion.section>
+
       )}
     </>
   );
