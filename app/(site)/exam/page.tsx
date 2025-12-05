@@ -10,7 +10,7 @@ import { getScholarshipByScore } from "@/lib/getScholarship";
 
 const ResultPDF = dynamic(() => import("@/components/ResultPDF"), {
   ssr: false,
-  loading: () => <p className="text-center py-8">Generating your result PDF...</p>,
+  loading: () => <p className="text-center py-8 text-gray-400">Generating your result PDF...</p>,
 });
 
 type Step = "form" | "exam" | "result";
@@ -39,8 +39,7 @@ interface ResultData extends FormData {
   promoCode: string;
   discountPercent: number;
   badgeColor: string;
-  message: string;
-  string;
+  message: string;            // ← FIXED: this was broken before
   shortAnswers: ShortAnswerResult[];
   timestamp: string;
 }
@@ -58,6 +57,11 @@ export default function ExamPage() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Force dark mode
+  useEffect(() => {
+    document.documentElement.classList.add("dark");
+  }, []);
+
   useEffect(() => {
     if (step === "exam" && questions.length === 0) {
       setQuestions(osTutelageExam.getQuestions());
@@ -71,15 +75,13 @@ export default function ExamPage() {
 
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
-        {
-          if (prev <= 0) {
-            clearInterval(timerRef.current!);
-            submitExam();
-            return 0;
-          }
-          if (prev === 300) setShowWarning(true);
-          return prev - 1;
+        if (prev <= 0) {
+          clearInterval(timerRef.current!);
+          submitExam();
+          return 0;
         }
+        if (prev === 300) setShowWarning(true);
+        return prev - 1;
       });
     }, 1000);
 
@@ -114,7 +116,7 @@ export default function ExamPage() {
       const mcqQuestions = questions.slice(0, 45) as MCQ[];
       const correctMCQ = mcqQuestions.filter((q, i) => answers[i] === q.correctAnswer).length;
 
-      // NEW: MCQ = 70 marks, Short = 30 marks
+      // Scoring: MCQ = 70, Short = 30
       const mcqMarks = Math.round((correctMCQ / 45) * 70);
       let shortMarks = 0;
       const shortResults: ShortAnswerResult[] = [];
@@ -147,8 +149,7 @@ export default function ExamPage() {
           }
         }
 
-        // Each short = max 6 marks
-        const scaled = Math.round((aiScore / 10) * 6);
+        const scaled = Math.round((aiScore / 10) * 6); // max 6 per question → 30 total
         shortMarks += scaled;
 
         shortResults.push({
@@ -162,7 +163,6 @@ export default function ExamPage() {
 
       const totalScore = mcqMarks + shortMarks;
 
-      // Get real scholarship from your DB codes
       const scholarship = getScholarshipByScore(totalScore);
 
       const result: ResultData = {
@@ -180,7 +180,6 @@ export default function ExamPage() {
         timestamp: new Date().toISOString(),
       };
 
-      // Send to email API
       await fetch("/api/exam-result", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -198,10 +197,8 @@ export default function ExamPage() {
   };
 
   const isFormValid = () =>
-    form.name.trim() &&
-    form.email.includes("@") &&
-    form.phone.length >= 10 &&
-    form.school;
+    form.name.trim() && form.email.includes("@") && form.phone.length >= 10 && form.school;
+
 
   return (
     <>
